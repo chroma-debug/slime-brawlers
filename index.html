@@ -994,6 +994,8 @@ function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE)); }catc
 // ---- quests: edit this list to add your own -------------------------------------------
 // stat: which counter it watches   goal: value needed   reward: {slime:'id'} or {skin:['id',skinIndex]}
 const QUESTS=[
+  {id:'q_aseprite',   name:'PIXEL FORGER', desc:'WIN 5 MATCHES',                 stat:'pixelWins', goal:5,  reward:{slime:'aseprite'}},
+  {id:'q_s_aseprite1',name:'NEON DREAMS',  desc:'WIN 2 MATCHES AS ASEPRITE',    stat:'aseSkinWins',goal:2, reward:{skin:['aseprite',1]}},
   {id:'q_ember', name:'FIRST BLOOD',   desc:'WIN 3 MATCHES',                 stat:'wins',      goal:3,  reward:{slime:'ember'}},
   {id:'q_frost', name:'IRON GUARD',    desc:'BLOCK 40 ATTACKS',              stat:'blocks',    goal:40, reward:{slime:'frost'}},
   {id:'q_rocky', name:'UNTOUCHABLE',   desc:'WIN A ROUND TAKING 0 DAMAGE',   stat:'perfects',  goal:1,  reward:{slime:'rocky'}},
@@ -1031,7 +1033,7 @@ function jackTimeStr(){
 function slimeUnlocked(ci){
   if(SAVE.devAll) return true;
   const id=CH[ci].id;
-  if(id==='ruby'||id==='hatter'||id==='aseprite'||id==='aesprite') return true;
+  if(id==='ruby'||id==='hatter') return true;
   if(id==='jack'){
     const left=jackRemainingTime();
     if(left>0) return true;
@@ -1217,7 +1219,7 @@ function finishMatch(){
   const localSlots=r.kind==='online'?[net.slot]:[0,1].filter(i=>human[i]);
   const trainingMode=mode&&mode.id==='training';
   if(!trainingMode){
-    for(const i of localSlots){ const f=G.f[i]; bumpStat('played',1); bumpStat('blocks',f.blocks); bumpStat('specials',f.spUsed); bumpStat('perfects',f.perfects); bumpStat('combo',f.maxCombo); if(w===i){ bumpStat('wins',1); if(G.rules.sumo) bumpStat('sumoWins',1); } }
+    for(const i of localSlots){ const f=G.f[i]; bumpStat('played',1); bumpStat('blocks',f.blocks); bumpStat('specials',f.spUsed); bumpStat('perfects',f.perfects); bumpStat('combo',f.maxCombo); if(w===i){ bumpStat('wins',1); bumpStat('pixelWins',1); if(f.ch===CHI.aseprite||f.ch===CHI.aesprite) bumpStat('aseSkinWins',1); if(G.rules.sumo) bumpStat('sumoWins',1); } }
     if(r.ringouts) bumpStat('ringouts',r.ringouts);
   }
   const humanWon=localSlots.includes(w);
