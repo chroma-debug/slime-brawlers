@@ -56,6 +56,30 @@ window.SLIME_ART.jack={
     down:{row:1,n:1}, ko:{row:1,n:1}, win:{row:0,n:6,fps:12}
   }
 };
+window.SLIME_ART = window.SLIME_ART || {};
+window.SLIME_ART.aseprite = {
+  src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANgAAAC0CAYAAAD2FuLMAAAD50lEQVR4nO3dTU7kMBAG0PSIw8EWrtCcCq7AbJnbZRTULTEIpv9SdpXz3oYNwiadL7bTiWuaAADgH7vpZ/PUr20Ywk8n+TzPsfna7T6aFjKG9qtHuA6NfPwIbwg6uuvZODTWfNlTLWDWhVyrxbJn/hqySgHrcoAY4oI4t1r2fD2HqgSs2wHilsM5hx6+Cp9VlYBlleUKnY0L4jUBO9xaP94BXP33i3GF5qrb9JzmqwzOYoo4FlPWZARsHKasV4he9pSfIi7/8PGfjvj9IkxZRxjBLr1ZMejNDW6w29iNsvJTRKEns/JTxGxMWRlqBIPMMyABW5kpK58J2OCy3VSYN3ajzBoMAhnBBre1ESMbIxgEEjBoHbDX338i22zWBqRdg2ULwNKf/eN9eBv6s87xoeBNjmwfsP78/9jsXRBrBYxaXl0Qv12D7Z6fHsIP/qGN4d4bgap7088vb+9TotDrT8djc+Fn1q0/1UaQdKGfYlXuz+yCWC9g1DIH//3KFyAAAAAAAAAAAAAAAAC41Mk3QTu3n70/cP2WAdHbKB8KDZz9in6y/sDVO/tmq/mbrT9wFltnQyABg0ACBoEEDAIJGGQK2HIr+1jHN+L3q/cHPjOCQaC76jV/s/UHPjOCQSABg0ACBj0Clq0Qerb+wM03ObKdcNn6A6eYIkIgAYMOActWCD1bf+Astgy47HgAAAAAAECrjUc7tg1D+Okkt4suBD3JYRddWIlnESHTnhydWRdSSqWAtVgXLg24+cLmpojWhZRUJWAwfsDsoguXMYJBIAGDQAIGgcoHzLqQYb4HU2gBxv2i+VtCT2blp4iQmYBBIAGDQAIGgQQMAgkYBBIwCCRg0DpgyrVC8JMc2cq1Lv3ZP96HtwGbfVRKAKjGGgwaB0y5Vtjg3vTzy9v7FEmNZtZWbQ/AbKEHAAAAAAAAAABKOPVokEeTIOph3wY1kU/1AYZ8H0xNZFiBFy4hkIBBIAGDQAIGgQQMMgVMTWQ4nxEMMm08qiYynM8IBoEEDAIJGAQSMAgkYBBIwCCQgEEgAYNAAgY9AqYQOgQ/KqUmMtzGFBECCRh0CJhC6LACG48CAAAAAAAAAAAAt6hWH1lRdkqpFDBF2SmnytP0TYqyH8szFbvwUHTLgBYjxtKAk5nNvXDZZMQ4tNFmaIIObBkAgQQMAgkYBCofMEXZyax8wGCogBkx4HxGMOi1N/13Lv1+rNUTGDBEwLIReDIzRYRAAgaBBAwCCRgEEjAIpEYzBCpTo3npy/7xPrwN2Oz3YAJANdZgEEiNZghUZVepxfzy9h7YlWl6fnpYftiEh9VUO5kyBR4AYBrTX7wmpWFUPI1MAAAAAElFTkSuQmCC',
+  fw: 36, fh: 36, ax: 18, ay: 34, pose: 1,
+  skins: [null, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANgAAAC0CAYAAAD2FuLMAAAD8UlEQVR4nO3dO07cUBQG4CGii6jSBYmCBaRhA6wgi2UFbICGBVAgkS5VlJrIikYihIdnmN8+x/6+eiRfzPy+j7m+Z7MBAIB/HG1ecfL56+Mm6NfvH69eG5bi6LVwXf58iF74+supkLF4n+YI12C4RrqXhLkdz90AmMoc055WATMvZF8TTXsen4esTcDmukH0fyCeTDjtef4dahGwOW8Q+/FAbBSwqqo8oavxQNwzYMPS+mBsb7Lr5zvxhGavZXre56cMxjJEXBBD1noEbCEMWfeTnva0HyIOf/D2j058vgND1oX0YLsuVixxcYOPuV7ZQln7IaLQU1n7IWI1hqwsqgeDyiMgATswQ1aeErCFq7aocLmyhTJzMAjSgy3c2nqMavRgECRgMHXA7r59T15zsmtA2TlYtQAM7Tm/vYpfQ3sOc39ouMhR7R+sPW/fm3MPxF4Bo5c7D8T/52DDORD3Dzfxmz9co+uZEzDWiz3Y35Btyhzosm3P2elFidBrD2O16kGqvRKvPW/fm7MiD8Q529MqYPRy4oEIAAAAAAAAAAAAAAAAh/Tm+2De54FQwCaq+bvTG6mV2gN7HzxareZvtfbAWI7OhiABgyABgyABgyABg0oBG5ayt3V8E5/v3h54Sg8GQcfda/5Waw88pQeDIAGDIAGDOQJWrRB6tfbAhxc5qn3hqrUH3mOICEECBlMHrFoh9GrtgbEcGfCEcAEAAAAAUOjg0eSFLYmz2oA5RRdCOzmcoguHYy8iVDqTY07mhXTTJmATzQsfLb6wuiGieSFdtQgYrCJgTtGF3ejBIEjAIEjAIKh9wMwLWczvYAotwEJ/aH6N0FNZ+yEiVCZgECRgECRgECRgECRgECRgECRgMHXAlGuF8E6OauVah/ac317FrwGr3SolAHRjDgZTBky5Vljh2fRDe85OL3INUqOZgFYFv6uFHgAAAAAAAAAA6OLNrUG2JkFws+8ENZHt/2N974OpiQyH4YVLCBIwCBIwCBIwCBIwqBQwNZFhPD0YVDp4VE1kGE8PBkECBkECBkECBkECBkECBkECBkECBkECBnMETCF0CG+VUhMZPsYQEYIEDKYOmELocBgOHgUAAAAAAAAAAABiexGrUZSdbtoETFF2Omqxm36qouzb8kxj2wV7HxkwUY/x6MvM6l64nKrHGK6R7iVhTo4MgCABgyABg6D2AVOUncraBwwWFTA9BoynB4O5zqZ/ya6/j021AwMWEbBqBJ7KDBEhSMAgSMAgSMAgSMAgSI1mCGpTo3loy/ntVfwasNrfwQSAbszBIEiNZlj7qVLbtpydXiSbs7l/uHGiFAfV6niySoEHANgs1h+cMl366pu1iwAAAABJRU5ErkJggg=='],
+  anims: {
+    idle: {row: 0, n: 6, fps: 8},
+    walk: {row: 0, n: 6, fps: 14},
+    jump: {row: 2, n: 1},
+    fall: {row: 2, n: 1},
+    block: {row: 1, n: 1},
+    lt: {row: 0, n: 6},
+    hv: {row: 0, n: 6},
+    aa: {row: 2, n: 1},
+    sp: {row: 0, n: 6},
+    hit: {row: 3, n: 1},
+    stun: {row: 4, n: 2, fps: 8},
+    down: {row: 1, n: 1},
+    ko: {row: 1, n: 1},
+    win: {row: 0, n: 6, fps: 12}
+  }
+};
+window.SLIME_ART.aesprite = window.SLIME_ART.aseprite;
+
 </script><script>// ===================================================================
 //  SLIME BRAWLERS -- deterministic fighting engine
 //  (no Math.random / trig / Date inside the sim: two machines fed the same
@@ -146,9 +170,17 @@ const CH=[
    pal:{body:'#9a55e8',dark:'#4a1f8a',light:'#e2b8ff',eye:'#ffe8ff',acc:'#ff4fd8'},
    mv:{ lt:mk(BASE.lt,{}), hv:mk(BASE.hv,{dmg:10}), aa:mk(BASE.aa,{}),
         sp:{su:7,ac:8,rc:18,dmg:13,box:[-8,-30,36,-2],kb:[3,-5],hs:22,bs:14,hstop:8,spark:2,launch:1,
-            tp:3,inv:[0,8],name:'BLINK STRIKE'} } },
+            tp:3,inv:[0,8],name:'BLINK STRIKE'} } },,
+ { id:'aseprite', atkMul:1.15, kbMul:1.15, name:'ASEPRITE', title:'PIXEL WARRIOR', shape:'cube', walk:2.1, back:1.8, jump:-7.8, hw:14, hh:28, stats:[4,4,4],
+    passive:'PIXEL PERFECT', passiveDesc:'Moves have reduced startup and deal +15% damage.', spName:'PALETTE BLAST', spDesc:'Fires an explosive bouncy multicolor pixel burst.',
+    pal:{body:'#ffffff',dark:'#9badb7',light:'#ffffff',eye:'#000000',acc:'#4df8ff'},
+    mv:{ lt:mk(BASE.lt,{su:3,dmg:6,name:'PIXEL BUMP'}), hv:mk(BASE.hv,{su:8,dmg:12,name:'PALETTE SMASH'}), aa:mk(BASE.aa,{dmg:8}),
+         sp:{su:8,ac:2,rc:18,dmg:0,box:[0,0,0,0],kb:[0,0],hs:0,bs:0,hstop:0,spark:2,noBox:1,
+             spawn:[8,{kind:'orbw',dx:18,dy:-14,vx:6.0,vy:-1.5,g:0.1,w:14,h:14,dmg:12,life:90,kb:[3.2,-3.5],hs:22,bs:14,launch:1,spark:2}],
+             spawns:[[8,{kind:'orbw',dx:18,dy:-14,vx:6.2,vy:-1.2,g:0.1,w:14,h:14,dmg:7,life:90,kb:[2.8,-3],hs:18,bs:11,launch:0}],
+                     [14,{kind:'orbb',dx:18,dy:-24,vx:5.2,vy:-2.4,g:0.1,w:14,h:14,dmg:9,life:100,kb:[3.4,-4],hs:20,bs:13,launch:1}]],name:'PALETTE BLAST'} } },
 ];
-const CHI={}; CH.forEach((c,i)=>{ CHI[c.id]=i; });
+const CHI={}; CH.forEach((c,i)=>{ CHI[c.id]=i; }); if(CHI.aseprite!=null) CHI['aesprite']=CHI.aseprite;
 
 // ---- state ---------------------------------------------------------
 const DEF_RULES={sumo:0,train:0,frenzy:0,wins:2,timer:3600,hpMax:[100,100],startHp:[0,0],atk:[1,1]};
@@ -458,6 +490,8 @@ function box(x,y,w,h,fill,edge,edge2){ R_(x,y,w,h,edge||OUT); R_(x+1,y+1,w-2,h-2
 // ---- skins -------------------------------------------------------------
 // skin 0 is the slime's own palette. Extra skins are palette swaps (or your own sprite sheets, see SLIME_ART).
 const SKINS={
+ aseprite: [{n:'MONO'},{n:'NEON',body:'#1a162b',dark:'#0d0b1a',light:'#2e284c',eye:'#4df8ff',acc:'#ff5ad0'}],
+ aesprite: [{n:'MONO'},{n:'NEON',body:'#1a162b',dark:'#0d0b1a',light:'#2e284c',eye:'#4df8ff',acc:'#ff5ad0'}],
  ruby:[{n:'CRIMSON'},{n:'AZURE',body:'#3a7ad2',dark:'#1f3f8c',light:'#9ac8ff'}],
  hatter:[{n:'MIDNIGHT'},{n:'SNOW',body:'#e8e8f4',dark:'#aaaac8',light:'#ffffff',eye:'#16141c',hat:'#3a5ac8',hatDark:'#1c2c7a',hatLight:'#8aa8ff'}],
  twin:[{n:'YIN YANG'},{n:'INVERT',body:'#1a1822',dark:'#07060c',light:'#55506e',body2:'#f2f2ff',dark2:'#b4b4d4',light2:'#ffffff',eye:'#ffffff',eye2:'#1a1822'}],
@@ -997,7 +1031,7 @@ function jackTimeStr(){
 function slimeUnlocked(ci){
   if(SAVE.devAll) return true;
   const id=CH[ci].id;
-  if(id==='ruby'||id==='hatter') return true;
+  if(id==='ruby'||id==='hatter'||id==='aseprite'||id==='aesprite') return true;
   if(id==='jack'){
     const left=jackRemainingTime();
     if(left>0) return true;
@@ -1046,8 +1080,8 @@ function sfxEvents(G){ for(const e of G.ev){ switch(e.t){
 // ---- input ----------------------------------------------------------------------
 // bits: IL IR IU ID IA IB IC
 const KEYMAP=[
-  {KeyA:IL,KeyD:IR,KeyW:IU,KeyS:ID,KeyF:IA,KeyG:IB,KeyH:IC},
-  {ArrowLeft:IL,ArrowRight:IR,ArrowUp:IU,ArrowDown:ID,KeyK:IA,KeyL:IB,Semicolon:IC},
+  {KeyA:IL,KeyD:IR,KeyW:IU,KeyS:ID,ArrowLeft:IL,ArrowRight:IR,ArrowUp:IU,ArrowDown:ID,Space:IU,KeyF:IA,KeyJ:IA,KeyZ:IA,KeyG:IB,KeyK:IB,KeyX:IB,KeyH:IC,KeyL:IC,KeyC:IC},
+  {ArrowLeft:IL,ArrowRight:IR,ArrowUp:IU,ArrowDown:ID,KeyK:IA,KeyL:IB,Semicolon:IC,KeyP:IC},
 ];
 const keysDown={}; let touchMask=0;
 const padState=[0,0];
@@ -1232,7 +1266,7 @@ function titleRender(){
   // mascots
   const hf=newFighter(0,0,1,100); hf.y=GY; for(const [cx,fc,ci] of [[70,1,0],[W-70,-1,2]]){ const f2=previewFighter(ci,NOW/16|0); const P=slimeAnim(f2,CH[ci],NOW,RS[0]); ctx.save(); ctx.translate(cx,190); ctx.scale(2,2); ctx.translate(-cx,-190); drawSlime(f2,0,NOW,0,{x:cx,y:190,face:fc,noShadow:true,pose:P}); ctx.restore(); }
   if(((NOW/500)|0)%2) txt('PRESS START',W/2,200,'#ffffff',2,1,OUT);
-  txt('F / ENTER / TAP',W/2,222,'#9ad8ff',1,1,OUT);
+  txt('ENTER / SPACE / J / TAP',W/2,222,'#9ad8ff',1,1,OUT);
   hot(0,0,W,H,()=>{ SFX.ok(); setScene('menu'); });
   txt('V1.0',W-6,H-10,'#6a64a8',1,2);
 }
@@ -1282,7 +1316,7 @@ function selTile(ci){
   const tw=72, th=58, gap_x=76, gap_y=66;
   const row=ci<6?0:1;
   const col=row===0?ci:(ci-6);
-  const left=row===0?14:52;
+  const left=14;
   return {x:left+col*gap_x, y:28+row*gap_y, w:tw, h:th};
 }
 function selActive(){ const two=mode.id==='versus'&&cfg.opp===0; if(run&&run.kind==='online') return [net.slot]; return two?[0,1]:[0]; }
@@ -1294,10 +1328,10 @@ function selectUpdate(){
   for(const s of act){ const sl=sel[s]; const m=(act.length===2)?MENU_PRESSED[s]:(MENU_PRESSED[0]|MENU_PRESSED[1]);
     if(!sl.ready){
       let c=sl.cur;
-      if(m&IL){ if(c<6) c=(c-1+6)%6; else c=6+(c-6-1+5)%5; }
-      if(m&IR){ if(c<6) c=(c+1)%6; else c=6+(c-6+1)%5; }
-      if(m&IU){ if(c>=6) c=Math.min(5,c-6); }
-      if(m&ID){ if(c<6) c=Math.min(10,6+Math.min(4,c)); }
+      if(m&IL){ if(c<6) c=(c-1+6)%6; else c=6+(c-6-1+6)%6; }
+      if(m&IR){ if(c<6) c=(c+1)%6; else c=6+(c-6+1)%6; }
+      if(m&IU){ if(c>=6) c=c-6; }
+      if(m&ID){ if(c<6) c=Math.min(CH.length-1,c+6); }
       if(m&(IL|IR|IU|ID)){ sl.cur=Math.min(CH.length-1,c); SFX.ui(); sl.ci=sl.cur; sl.sk=slimeUnlocked(sl.cur)?(SAVE.skin[CH[sl.cur].id]|0):0; if(!skinUnlocked(sl.cur,sl.sk)) sl.sk=0; }
       if(m&IB&&slimeUnlocked(sl.cur)) cycleSkin(s);
     }
