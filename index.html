@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Slime Brawlers</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0d0b1a"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Slime Brawlers</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"><style>html{color-scheme:dark}html,body{margin:0;color:#fff;height:100%;background:#07060f;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
 #wrap{position:fixed;left:50%;top:50%;width:min(100vw,calc(100vh*16/9));aspect-ratio:16/9;transform:translate(-50%,-50%);container-type:inline-size}
 #game{width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges;background:#000}
@@ -1834,6 +1834,8 @@ function p2pWire(){ const g=id=>document.getElementById(id); if(!g('lb-pc')) ret
   for(const id of ['lb-pin','lb-prep']) g(id).addEventListener('keydown',e=>e.stopPropagation()); }
 
 lobbyInit(); p2pWire(); touchInit(); initGame(); lbInit();
+
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }); }
 </script>
 </body>
 </html>
