@@ -984,28 +984,21 @@ function drawHUD(G,now,names,opts){
 const SAVE_KEY='slimebrawlers_v1';
 const SEVEN_DAYS = 7 * 24 * 3600 * 1000;
 const BAKED_SAVE = {
-  done: {"q_s_hatter1":1,"q_s_twin1":1,"q_gloop":1,"q_volt":1,"q_ember":1,"q_frost":1,"q_s_ruby1":1,"q_s_gloop1":1,"q_twin":1,"q_rocky":1,"q_void":1,"q_s_volt1":1,"q_s_god1":1,"q_god":1,"q_s_void1":1,"q_s_ember1":1,"q_s_frost1":1,"q_s_gloop2":1,"q_s_rocky1":1,"q_jack":Date.now()+SEVEN_DAYS},
-  stats: {"wins":50,"played":74,"blocks":374,"specials":336,"perfects":15,"arcade":1,"sumoWins":4,"ringouts":9,"combo":32,"survival":5},
-  skin: {"ruby":1,"hatter":1,"twin":1,"god":1,"gloop":2,"ember":1,"frost":1,"rocky":1,"volt":1,"void":1,"jack":0},
-  sound: 1, devAll: 0, pid: "blv6q15u3xbovku9ah5s", name: "YOUR NAME", nameAuto: 0, coins: 3, server: "",
-  jackExpires: Date.now()+SEVEN_DAYS
+  done: {"q_s_hatter1":1,"q_s_twin1":1,"q_gloop":1,"q_volt":1,"q_ember":1,"q_frost":1,"q_s_ruby1":1,"q_s_gloop1":1,"q_twin":1,"q_rocky":1,"q_void":1,"q_s_volt1":1,"q_s_god1":1,"q_god":1,"q_s_void1":1,"q_s_ember1":1,"q_s_frost1":1,"q_s_gloop2":1,"q_s_rocky1":1},
+  stats: {"wins":50,"played":74,"blocks":374,"specials":336,"perfects":15,"arcade":1,"sumoWins":4,"ringouts":9,"combo":32,"survival":5,"pixelWins":5,"aseSkinWins":2,"novaWinsQ":5,"novaWins":2},
+  skin: {"ruby":1,"hatter":1,"twin":1,"god":1,"gloop":2,"ember":1,"frost":1,"rocky":1,"volt":1,"void":1,"jack":0,"aseprite":0,"aesprite":0,"nova":0},
+  sound: 1, devAll: 0, pid: "blv6q15u3xbovku9ah5s", name: "YOUR NAME", nameAuto: 0, coins: 3, server: ""
 };
 let SAVE = JSON.parse(JSON.stringify(BAKED_SAVE));
 try {
   const raw = localStorage.getItem(SAVE_KEY);
   if (raw) {
     const o = JSON.parse(raw);
-    if ((o.stats && o.stats.wins) >= 50) {
+    if (o && typeof o === 'object') {
       SAVE = Object.assign(SAVE, o);
-      SAVE.stats = Object.assign(BAKED_SAVE.stats, o.stats || {});
+      SAVE.stats = Object.assign({}, BAKED_SAVE.stats, o.stats || {});
       SAVE.done = Object.assign({}, BAKED_SAVE.done, o.done || {});
       SAVE.skin = Object.assign({}, BAKED_SAVE.skin, o.skin || {});
-    } else {
-      SAVE.done = Object.assign({}, BAKED_SAVE.done, (o && o.done) || {});
-      SAVE.skin = Object.assign({}, BAKED_SAVE.skin, (o && o.skin) || {});
-      for (const k in BAKED_SAVE.stats) {
-        SAVE.stats[k] = Math.max(BAKED_SAVE.stats[k] || 0, (o && o.stats && o.stats[k]) || 0);
-      }
     }
   }
   localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE));
