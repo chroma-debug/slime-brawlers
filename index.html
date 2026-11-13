@@ -179,6 +179,12 @@ const CH=[
              spawn:[8,{kind:'orbw',dx:18,dy:-14,vx:6.0,vy:-1.5,g:0.1,w:14,h:14,dmg:12,life:90,kb:[3.2,-3.5],hs:22,bs:14,launch:1,spark:2}],
              spawns:[[8,{kind:'orbw',dx:18,dy:-14,vx:6.2,vy:-1.2,g:0.1,w:14,h:14,dmg:7,life:90,kb:[2.8,-3],hs:18,bs:11,launch:0}],
                      [14,{kind:'orbb',dx:18,dy:-24,vx:5.2,vy:-2.4,g:0.1,w:14,h:14,dmg:9,life:100,kb:[3.4,-4],hs:20,bs:13,launch:1}]],name:'PALETTE BLAST'} } },
+ { id:'nova', atkMul:1.14, kbMul:1.05, name:'NOVA', title:'COSMIC SLIME', shape:'cube', float:1, walk:2.1, back:1.7, jump:-7.6, hw:13, hh:28, stats:[4,4,4],
+   passive:'ZERO GRAVITY', passiveDesc:'Low gravity float and +20% aerial attack damage.', spName:'EVENT HORIZON', spDesc:'Launches a gravitational vortex that pulls foes in.',
+   pal:{body:'#312056',dark:'#180c30',light:'#7d52f0',eye:'#4df8ff',acc:'#ffd54f'},
+   mv:{ lt:mk(BASE.lt,{dmg:6,name:'STARDUST JAB'}), hv:mk(BASE.hv,{dmg:12,name:'COSMIC BURST'}), aa:mk(BASE.aa,{dmg:9,name:'SUPERNOVA'}),
+        sp:{su:9,ac:2,rc:20,dmg:0,box:[0,0,0,0],kb:[0,0],hs:0,bs:0,hstop:0,spark:2,noBox:1,
+            spawn:[9,{kind:'vortex',dx:20,dy:-16,vx:3.8,w:18,h:18,dmg:15,life:100,kb:[2.8,-3.8],hs:24,bs:16,launch:1,spark:2}],name:'EVENT HORIZON'} } },
 ];
 const CHI={}; CH.forEach((c,i)=>{ CHI[c.id]=i; }); if(CHI.aseprite!=null) CHI['aesprite']=CHI.aseprite;
 
@@ -277,7 +283,7 @@ function stepFighter(G,i){
   if(G.ring&&f.pct<45&&f.st!==S_KO){ if(f.x<G.ring[0]){ f.x=G.ring[0]; if(f.vx<0) f.vx=0; } else if(f.x>G.ring[1]){ f.x=G.ring[1]; if(f.vx>0) f.vx=0; } }
   const plat=!G.ring||(f.x>=G.ring[0]&&f.x<=G.ring[1]);
   if(f.onGround&&!plat){ f.onGround=0; f.vy=0; if(f.st!==S_ATK&&f.st!==S_FALL&&f.st!==S_KO) setSt(f,S_JUMP); }
-  if(!f.onGround){ f.vy+=((f.st===S_FALL||f.st===S_DOWN)?1.6:0.42); f.y+=f.vy; }
+  if(!f.onGround){ f.vy+=((f.st===S_FALL||f.st===S_DOWN)?1.6:(CH[f.ch].float?0.26:0.42)); f.y+=f.vy; }
   if(f.y>=GY && plat && py<=GY+1){
     f.y=GY;
     if(!f.onGround){
@@ -348,7 +354,7 @@ function stepProj(G){
     const p=G.proj[k]; p.age++; p.x+=p.vx; p.life--;
     if(p.vy!=null){ p.y+=p.vy; if(p.g) p.vy+=p.g; if(p.y>GY-8){ p.y=GY-8; p.vy=-(p.vy*(p.bounce||0.6)); } }
     if(p.ret&&!p.back&&p.age>=p.ret){ p.back=1; p.vx=-p.vx; }
-    const di=1-p.own, d=G.f[di];
+    const di=1-p.own, d=G.f[di]; if(p.kind==='vortex'&&Math.abs(d.x-p.x)<120){ d.x+=(p.x>d.x?0.8:-0.8); }
     if(p.age>=p.delay){
       const box=[p.x-p.w/2,p.y-p.h/2,p.x+p.w/2,p.y+p.h/2];
       if(ovl(box,hurtbox(d))){ if(resolveHit(G,p.own,di,p,p.x,p.kind==='pillar'?d.y-14:p.y,true)){
@@ -490,6 +496,7 @@ function box(x,y,w,h,fill,edge,edge2){ R_(x,y,w,h,edge||OUT); R_(x+1,y+1,w-2,h-2
 // ---- skins -------------------------------------------------------------
 // skin 0 is the slime's own palette. Extra skins are palette swaps (or your own sprite sheets, see SLIME_ART).
 const SKINS={
+  nova: [{n:'COSMIC'},{n:'SUPERNOVA',body:'#ff5500',dark:'#8a1800',light:'#ffaa44',eye:'#ffffff',acc:'#00f0ff'}],
  aseprite: [{n:'MONO'},{n:'NEON',body:'#1a162b',dark:'#0d0b1a',light:'#2e284c',eye:'#4df8ff',acc:'#ff5ad0'}],
  aesprite: [{n:'MONO'},{n:'NEON',body:'#1a162b',dark:'#0d0b1a',light:'#2e284c',eye:'#4df8ff',acc:'#ff5ad0'}],
  ruby:[{n:'CRIMSON'},{n:'AZURE',body:'#3a7ad2',dark:'#1f3f8c',light:'#9ac8ff'}],
@@ -595,7 +602,13 @@ function decorTop(C,cx,top,face,now,pal,rs){
       R_(cx-w/2+sh,yy,w,1,r<H-4?pal.hat:pal.hatDark); if(r>1&&r<H-5) R_(cx-w/2+sh+1,yy,1,1,pal.hatLight); }
     R_(cx-9,top-1,18,4,OUT); R_(cx-8,top,16,2,pal.hat); R_(cx-8,top+2,16,1,pal.hatDark); R_(cx-7,top,3,1,pal.hatLight);
     R_(cx-5,top-4,10,2,pal.acc); R_(cx-5,top-4,10,1,'#fff6a0'); }
-  else if(id==='god'){ const bob=Math.round(Math.sin(now/340)*1.5);
+  else if(id==='nova'){
+    const t=now/320, rx=13, ry=4;
+    for(let a=0;a<6.28;a+=0.6){
+      const px=Math.round(cx+Math.cos(a+t)*rx), py=Math.round(top+14+Math.sin(a+t)*ry);
+      if(Math.sin(a+t)>0) R_(px,py,2,1,(Math.floor(a*2)&1)?pal.eye:pal.acc);
+    }
+  } else if(id==='god'){ const bob=Math.round(Math.sin(now/340)*1.5);
     R_(cx-6,top-5,12,6,OUT); R_(cx-5,top-4,10,5,pal.body); R_(cx-4,top-4,5,1,pal.light); R_(cx-5,top-1,10,1,pal.dark);
     const ry=top-15+bob; for(let a=0;a<6.28;a+=.28){ const px=Math.round(cx+Math.cos(a)*10), py=Math.round(ry+Math.sin(a)*3); R_(px-1,py-1,4,3,OUT); }
     for(let a=0;a<6.28;a+=.28){ const px=Math.round(cx+Math.cos(a)*10), py=Math.round(ry+Math.sin(a)*3); R_(px,py,2,1,Math.sin(a)>0?'#fff6a0':'#ffd24a'); }
@@ -612,7 +625,8 @@ function decorTop(C,cx,top,face,now,pal,rs){
   else if(id==='volt'){ const bolt=(x,h,s)=>{ for(let r=0;r<h;r++){ const o=(r%4<2?0:s); R_(x+o-1,top-r-1,4,1,OUT); } for(let r=0;r<h;r++){ const o=(r%4<2?0:s); R_(x+o,top-r-1,2,1,r>h-4?'#fffbc8':'#ffe14a'); } };
       bolt(cx-6,8,2); bolt(cx,12,-2); bolt(cx+5,7,2);
       if(((now/90)|0)%5===0){ R_(cx+8,top-6,2,2,'#7affff'); R_(cx-9,top-3,2,2,'#7affff'); } }
-  else if(id==='void'){ const hornC='#ff4fd8'; for(const s of [-1,1]){ const x=cx+s*7; for(let r=0;r<8;r++){ const w=Math.max(1,4-Math.floor(r/2)); R_(x+s*Math.floor(r/3)-Math.floor(w/2)-1,top-r-1,w+2,1,OUT); }
+  else if(id==='nova'){ R_(cx-5,top+H2*.45,2,2,'#ffffff'); R_(cx+4,top+H2*.65,2,2,pal.eye); R_(cx-2,top+H2*.78,1,1,'#ffffff'); R_(cx+2,top+H2*.38,1,1,pal.acc); }
+  if(id==='void'){ const hornC='#ff4fd8'; for(const s of [-1,1]){ const x=cx+s*7; for(let r=0;r<8;r++){ const w=Math.max(1,4-Math.floor(r/2)); R_(x+s*Math.floor(r/3)-Math.floor(w/2)-1,top-r-1,w+2,1,OUT); }
       for(let r=0;r<8;r++){ const w=Math.max(1,4-Math.floor(r/2)); R_(x+s*Math.floor(r/3)-Math.floor(w/2),top-r-1,w,1,r<5?'#4a1f8a':hornC); } } }
 }
 function bodyDecor(C,b,face,now,pal,flash){
@@ -798,7 +812,14 @@ function drawProj(G,now){
       R_(x-1,y-r-2,2,3,'#663931');
       const eyeC='#fbf236'; R_(x-3*f,y-2,2,2,eyeC); R_(x+1*f,y-2,2,2,eyeC); R_(x-2*f,y+1,4,1,eyeC);
       if(Math.random()<0.5) P_({x:x-f*rnd(3,8),y:y+rnd(-3,3),vx:-f*rnd(0.5,2),vy:rnd(-1,1),s:2,c:eyeC,life:12}); }
-    else if(p.kind==='ball'){ const r=7+Math.round(Math.sin(now/40)*1.5); R_(x-r-1,y-r-1,r*2+2,r*2+2,OUT); R_(x-r,y-r,r*2,r*2,'#ffe14a'); R_(x-r+2,y-r+2,r*2-4,r*2-4,'#fffbc8'); R_(x-2,y-2,4,4,'#fff');
+    else if(p.kind==='vortex'){
+      const r=9+Math.round(Math.sin(now/45)*2);
+      R_(x-r-1,y-r-1,r*2+2,r*2+2,OUT);
+      R_(x-r,y-r,r*2,r*2,'#180c30');
+      R_(x-r+3,y-r+3,r*2-6,r*2-6,'#3d1668');
+      R_(x-2,y-2,4,4,'#090312');
+      for(let k=0;k<4;k++){ const a=now/55+k*1.57; R_(x+Math.round(Math.cos(a)*(r+3)),y+Math.round(Math.sin(a)*(r*.6+2)),2,2,k%2?'#4df8ff':'#ffd54f'); }
+    } else if(p.kind==='ball'){ const r=7+Math.round(Math.sin(now/40)*1.5); R_(x-r-1,y-r-1,r*2+2,r*2+2,OUT); R_(x-r,y-r,r*2,r*2,'#ffe14a'); R_(x-r+2,y-r+2,r*2-4,r*2-4,'#fffbc8'); R_(x-2,y-2,4,4,'#fff');
       for(let k=0;k<4;k++){ const a=now/50+k*1.57; R_(x+Math.round(Math.cos(a)*(r+3)),y+Math.round(Math.sin(a)*(r+3)),2,2,'#7affff'); } }
     else if(p.kind==='shard'){ R_(x-10,y-4,20,8,OUT); for(let r=0;r<8;r++){ const w=20-Math.abs(r-4)*3; R_(f>0?x+10-w:x-10,y-4+r,w,1,r<3?'#e6fbff':(r<6?'#6cc8ff':'#2f7fd0')); } R_(f>0?x+8:x-10,y-1,2,2,'#fff'); }
     else if(p.kind==='glob'){ const w=8+Math.round(Math.sin(now/70)*1.5); R_(x-w-1,y-6,w*2+2,13,OUT); R_(x-w,y-5,w*2,11,'#5fd35f'); R_(x-w+2,y-4,w*2-4,3,'#c4f7a8'); R_(x-w,y+2,w*2,3,'#2c9446'); R_(x-3*f,y-2,2,2,'#10261c'); R_(x+1*f,y-2,2,2,'#10261c'); }
@@ -994,6 +1015,8 @@ function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE)); }catc
 // ---- quests: edit this list to add your own -------------------------------------------
 // stat: which counter it watches   goal: value needed   reward: {slime:'id'} or {skin:['id',skinIndex]}
 const QUESTS=[
+  {id:'q_nova',   name:'STARLIGHT VOYAGE', desc:'WIN 5 MATCHES',                 stat:'novaWinsQ', goal:5, reward:{slime:'nova'}},
+  {id:'q_s_nova1',name:'SOLAR FLARE',      desc:'WIN 2 MATCHES AS NOVA',         stat:'novaWins',  goal:2, reward:{skin:['nova',1]}},
   {id:'q_aseprite',   name:'PIXEL FORGER', desc:'WIN 5 MATCHES',                 stat:'pixelWins', goal:5,  reward:{slime:'aseprite'}},
   {id:'q_s_aseprite1',name:'NEON DREAMS',  desc:'WIN 2 MATCHES AS ASEPRITE',    stat:'aseSkinWins',goal:2, reward:{skin:['aseprite',1]}},
   {id:'q_ember', name:'FIRST BLOOD',   desc:'WIN 3 MATCHES',                 stat:'wins',      goal:3,  reward:{slime:'ember'}},
@@ -1219,7 +1242,7 @@ function finishMatch(){
   const localSlots=r.kind==='online'?[net.slot]:[0,1].filter(i=>human[i]);
   const trainingMode=mode&&mode.id==='training';
   if(!trainingMode){
-    for(const i of localSlots){ const f=G.f[i]; bumpStat('played',1); bumpStat('blocks',f.blocks); bumpStat('specials',f.spUsed); bumpStat('perfects',f.perfects); bumpStat('combo',f.maxCombo); if(w===i){ bumpStat('wins',1); bumpStat('pixelWins',1); if(f.ch===CHI.aseprite||f.ch===CHI.aesprite) bumpStat('aseSkinWins',1); if(G.rules.sumo) bumpStat('sumoWins',1); } }
+    for(const i of localSlots){ const f=G.f[i]; bumpStat('played',1); bumpStat('blocks',f.blocks); bumpStat('specials',f.spUsed); bumpStat('perfects',f.perfects); bumpStat('combo',f.maxCombo); if(w===i){ bumpStat('wins',1); bumpStat('pixelWins',1); bumpStat('novaWinsQ',1); if(f.ch===CHI.nova) bumpStat('novaWins',1); if(f.ch===CHI.aseprite||f.ch===CHI.aesprite) bumpStat('aseSkinWins',1); if(G.rules.sumo) bumpStat('sumoWins',1); } }
     if(r.ringouts) bumpStat('ringouts',r.ringouts);
   }
   const humanWon=localSlots.includes(w);
