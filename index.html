@@ -1286,7 +1286,7 @@ function titleRender(){
   if(((NOW/500)|0)%2) txt('PRESS START',W/2,200,'#ffffff',2,1,OUT);
   txt('ENTER / SPACE / J / TAP',W/2,222,'#9ad8ff',1,1,OUT);
   hot(0,0,W,H,()=>{ SFX.ok(); setScene('menu'); });
-  txt('V1.0',W-6,H-10,'#6a64a8',1,2);
+  txt('V1.2 (NOVA)',W-6,H-10,'#a884f0',1,2);
 }
 
 // ---- scene: menu ---------------------------------------------------------------------------
@@ -1851,7 +1851,16 @@ function p2pWire(){ const g=id=>document.getElementById(id); if(!g('lb-pc')) ret
 
 lobbyInit(); p2pWire(); touchInit(); initGame(); lbInit();
 
-if('serviceWorker' in navigator && location.protocol.startsWith('http')){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }); }
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      reg.update();
+    }).catch(()=>{});
+  });
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
 </script>
 </body>
 </html>
