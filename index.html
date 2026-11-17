@@ -1153,7 +1153,7 @@ const DUMMY_OPTS=['DUMMY: STANDING','DUMMY: CPU'];
 
 let scene='title', sceneT=0, fadeT=0, NOW=0;
 let mode=null, cfg={opp:0,stage:0,stageRand:0}, sel=[{ci:0,sk:0,ready:0,cur:0},{ci:0,sk:0,ready:0,cur:0}];
-let G=null, run=null, menuIdx=0, oppIdx=0, stageIdx=0, pauseIdx=0, resIdx=0, resultInfo=null, ladderT=0, quitAsk=0, questScroll=0, howPage=0;
+let G=null, run=null, menuIdx=0, oppIdx=0, stageIdx=0, pauseIdx=0, resIdx=0, resultInfo=null, ladderT=0, quitAsk=0, questScroll=0, questIdx=0, howPage=0;
 let HOT=[], attract=null, toastList=[];
 const SCALE_PRE=[];
 function setScene(s){ scene=s; sceneT=0; fadeT=14; }
@@ -1286,14 +1286,14 @@ function titleRender(){
   if(((NOW/500)|0)%2) txt('PRESS START',W/2,200,'#ffffff',2,1,OUT);
   txt('ENTER / SPACE / J / TAP',W/2,222,'#9ad8ff',1,1,OUT);
   hot(0,0,W,H,()=>{ SFX.ok(); setScene('menu'); });
-  txt('V1.3 (COSMIC LAYER)',W-6,H-10,'#ffd24a',1,2);
+  txt('V1.4 (QUEST FIX & PLAY)',W-6,H-10,'#ffd24a',1,2);
 }
 
 // ---- scene: menu ---------------------------------------------------------------------------
 function menuLabel(i){ const m=MODES[i]; if(m.id==='sound') return 'SOUND: '+(SAVE.sound?'ON':'OFF'); return m.n; }
 function menuPickMode(i){ const m=MODES[i]; mode=m; menuIdx=i; SFX.ok();
   if(m.id==='sound'){ SAVE.sound=SAVE.sound?0:1; save(); if(SAVE.sound) SFX.ok(); return; }
-  if(m.id==='quests'){ questScroll=0; setScene('quests'); return; }
+  if(m.id==='quests'){ questScroll=0; questIdx=0; setScene('quests'); return; }
   if(m.id==='how'){ howPage=0; setScene('how'); return; }
   if(m.id==='lb'){ lbOpen(); return; } if(m.id==='online'){ netOpenLobby(); return; }
   if(m.opp){ oppIdx=m.id==='training'?0:Math.max(0,cfg.opp); setScene('opp'); return; }
@@ -1304,7 +1304,7 @@ function menuUpdate(){
 function menuRender(){
   R_(0,0,W,H,'#14102c'); for(let i=0;i<12;i++){ R_(0,i*24+((NOW/60)%24|0)-24,W,1,'#1d1840'); }
   txt('SLIME BRAWLERS',16,12,'#ffd24a',2,0,OUT); txt('SELECT MODE',16,34,'#9ad8ff',1,0);
-  drawList(MODES.map((m,i)=>menuLabel(i)),menuIdx,28,48,21,200,2,i=>{ if(menuIdx===i) menuPickMode(i); else { menuIdx=i; SFX.ui(); } });
+  drawList(MODES.map((m,i)=>menuLabel(i)),menuIdx,28,42,19,200,2,i=>{ menuIdx=i; menuPickMode(i); });
   // info panel
   const m=MODES[menuIdx]; panel(250,44,218,176,m.n);
   const lines=(m.d||'').split('|'); lines.forEach((l,i)=>txt(l,260,66+i*12,'#fff',1,0));
@@ -1522,27 +1522,170 @@ function resultsRender(){
 }
 
 // ---- scene: quests -------------------------------------------------------------------------------------
-function questsUpdate(){ const n=navOf(); if(n&IU&&questScroll>0){ questScroll--; SFX.ui(); } if(n&ID&&questScroll<QUESTS.length-7){ questScroll++; SFX.ui(); }
-  if(keysDown.KeyU&&!questsUpdate.u){ SAVE.devAll=SAVE.devAll?0:1; save(); SFX.ok(); } questsUpdate.u=keysDown.KeyU; if(anyBack()||anyOk()&&false){ SFX.back(); setScene('menu'); } }
-function questsRender(){
-  R_(0,0,W,H,'#14102c'); txt('QUESTS',16,10,'#ffd24a',2,0,OUT);
-  const done=Object.keys(SAVE.done).length; txt(done+' / '+QUESTS.length+' DONE',W-16,12,'#9ad8ff',1,2);
-  const st=SAVE.stats; txt('WINS '+st.wins+'  BLOCKS '+st.blocks+'  SPECIALS '+st.specials+'  PERFECT '+st.perfects,16,32,'#6a64a8',1,0);
-  for(let k=0;k<7;k++){ const i=k+questScroll, q=QUESTS[i]; if(!q) break; const y=46+k*28, d=SAVE.done[q.id], v=Math.min(q.goal,st[q.stat]||0);
-    box(12,y,456,26,d?'#1d3a2a':'#1a1636',OUT,d?'#5fd35f':'#4a4380');
-    // reward icon
-    const ci=q.reward.slime?CHI[q.reward.slime]:CHI[q.reward.skin[0]]; const sk=q.reward.skin?q.reward.skin[1]:0;
-    ctx.save(); ctx.beginPath(); ctx.rect(16,y+2,34,22); ctx.clip(); const pose={sx:.9,sy:.9,skew:0,oy:0,eyes:'n',mouth:'n',pod:null,alpha:1,block:0}; blobHead(ci,sk,33,y+23,pose,q.reward.slime&&!d?1:0); ctx.restore();
-    txt(q.name,58,y+5,d?'#c4f7a8':'#ffd24a',1,0); txt(q.desc,58,y+16,'#fff',1,0);
-    txt(rewardText(q),460,y+5,d?'#c4f7a8':'#9ad8ff',1,2);
-    if(q.id==='q_jack'&&d) txt('ACTIVE: '+jackTimeStr()+' LEFT',460,y+16,'#7ae26a',1,2);
-    const bw=120; R_(340,y+15,bw,6,OUT); R_(341,y+16,Math.round((bw-2)*v/q.goal),4,d?'#5fd35f':'#ffd24a'); txt(v+'/'+q.goal,334,y+15,'#fff',1,2);
+function launchQuest(q){
+  SFX.ok();
+  if(!q) return;
+  if(q.stat==='arcade'){
+    mode = MODES.find(m=>m.id==='arcade') || MODES[3];
+    run = newRun('arcade');
+    run.cpu = [false, true];
+    goSelect();
+    return;
   }
-  if(QUESTS.length>7){ const bh=150, th=Math.round(bh*7/QUESTS.length), ty=46+Math.round((bh+46)*questScroll/QUESTS.length); R_(472,46,4,196,'#2a2550'); R_(472,ty,4,Math.round(196*7/QUESTS.length),'#ffd24a'); }
-  hot(0,40,W,200,()=>{}); hot(440,0,40,40,()=>{});
-  hot(W-60,H-20,60,20,()=>{ setScene('menu'); });
-  txt('UP/DOWN SCROLL   ESC BACK'+(SAVE.devAll?'   [DEV: ALL UNLOCKED]':'   [U] DEV UNLOCK'),W/2,H-12,'#6a64a8',1,1);
-  hot(0,0,100,34,()=>{ SFX.back(); setScene('menu'); }); }
+  if(q.stat==='survival'){
+    mode = MODES.find(m=>m.id==='survival') || MODES[4];
+    run = newRun('survival');
+    run.cpu = [false, true];
+    goSelect();
+    return;
+  }
+  let mId = 'versus';
+  if(q.stat==='sumoWins'||q.stat==='ringouts') mId = 'sumo';
+  let p1 = sel[0].ci;
+  if(q.stat==='novaWins'||q.stat==='novaWinsQ') p1 = CHI.nova;
+  else if(q.stat==='aseSkinWins'||q.stat==='pixelWins') p1 = CHI.aseprite;
+  else if(q.reward && q.reward.skin) p1 = CHI[q.reward.skin[0]] != null ? CHI[q.reward.skin[0]] : p1;
+  else if(q.reward && q.reward.slime) p1 = CHI[q.reward.slime] != null ? CHI[q.reward.slime] : p1;
+
+  mode = MODES.find(m=>m.id===mId) || MODES[0];
+  cfg.opp = 2; // CPU Normal
+  sel[0].ci = p1; sel[0].cur = p1;
+  sel[1].ci = (p1 + 1) % CH.length; sel[1].cur = sel[1].ci;
+  run = newRun(mId);
+  run.stage = (Math.random()*STAGES.length)|0;
+  run.cpu = [false, true];
+  run.lvl = [0, 1];
+  startMatch();
+}
+
+function questsUpdate(){
+  const n = navOf();
+  const maxIdx = QUESTS.length - 1;
+  if(n & IU){
+    if(questIdx > 0) questIdx--;
+    if(questIdx < questScroll) questScroll = questIdx;
+    SFX.ui();
+  }
+  if(n & ID){
+    if(questIdx < maxIdx) questIdx++;
+    if(questIdx >= questScroll + 7) questScroll = questIdx - 6;
+    SFX.ui();
+  }
+  if(keysDown.KeyU && !questsUpdate.u){
+    SAVE.devAll = SAVE.devAll ? 0 : 1;
+    save();
+    SFX.ok();
+  }
+  questsUpdate.u = keysDown.KeyU;
+  if(anyBack()){
+    SFX.back();
+    setScene('menu');
+    return;
+  }
+  if(anyOk()){
+    const q = QUESTS[questIdx];
+    if(q) launchQuest(q);
+    else { SFX.back(); setScene('menu'); }
+  }
+}
+
+function questsRender(){
+  R_(0,0,W,H,'#14102c');
+  for(let i=0;i<10;i++) R_(0,i*28+((NOW/70)%28|0)-28,W,1,'#1c1738');
+
+  // Prominent Back Button (Top Left)
+  box(10, 8, 66, 22, '#2d2762', OUT, '#ffd24a');
+  txt('< BACK', 43, 14, '#ffd24a', 1, 1, OUT);
+  hot(6, 4, 74, 28, ()=>{ SFX.back(); setScene('menu'); });
+
+  // Title
+  txt('QUESTS & CHALLENGES', 86, 12, '#ffd24a', 2, 0, OUT);
+
+  // Status & Top-Right Back Button
+  const done=Object.keys(SAVE.done).length;
+  txt(done+' / '+QUESTS.length+' DONE', W-96, 14, '#9ad8ff', 1, 2);
+  box(W-80, 8, 70, 22, '#2d2762', OUT, '#ffd24a');
+  txt('< BACK', W-45, 14, '#ffd24a', 1, 1, OUT);
+  hot(W-84, 4, 78, 28, ()=>{ SFX.back(); setScene('menu'); });
+
+  // Stats summary banner
+  const st=SAVE.stats;
+  txt('WINS '+st.wins+'   BLOCKS '+st.blocks+'   SPECIALS '+st.specials+'   PERFECTS '+st.perfects, 16, 34, '#6a64a8', 1, 0);
+
+  // Quest cards
+  for(let k=0;k<7;k++){
+    const i=k+questScroll, q=QUESTS[i];
+    if(!q) break;
+    const y=46+k*28, d=!!SAVE.done[q.id], v=Math.min(q.goal,st[q.stat]||0);
+    const isSel=(i===questIdx);
+
+    // Card background & highlight
+    const bg = isSel ? (d ? '#234a34' : '#282154') : (d ? '#183023' : '#181432');
+    const border = isSel ? '#ffd24a' : (d ? '#5fd35f' : '#3f3870');
+    box(12, y, 456, 26, bg, OUT, border);
+
+    if(isSel){
+      R_(8, y+7, 3, 12, '#ffd24a');
+    }
+
+    // Reward icon
+    const ci = q.reward.slime ? CHI[q.reward.slime] : CHI[q.reward.skin[0]];
+    const sk = q.reward.skin ? q.reward.skin[1] : 0;
+    ctx.save(); ctx.beginPath(); ctx.rect(16, y+2, 34, 22); ctx.clip();
+    const pose = {sx:.9,sy:.9,skew:0,oy:0,eyes:'n',mouth:'n',pod:null,alpha:1,block:0};
+    blobHead(ci, sk, 33, y+23, pose, (q.reward.slime && !d) ? 1 : 0);
+    ctx.restore();
+
+    // Quest Title and description
+    txt(q.name, 56, y+5, isSel ? '#fff' : (d ? '#c4f7a8' : '#ffd24a'), 1, 0, OUT);
+    txt(q.desc, 56, y+16, '#cfcaff', 1, 0);
+
+    // Reward text
+    txt(rewardText(q), 362, y+5, d ? '#c4f7a8' : '#9ad8ff', 1, 2);
+    if(q.id==='q_jack' && d) txt('ACTIVE: '+jackTimeStr()+' LEFT', 362, y+16, '#7ae26a', 1, 2);
+
+    // Progress bar
+    const bw = 70;
+    R_(302, y+16, bw, 6, OUT);
+    R_(303, y+17, Math.round((bw-2)*(v/q.goal)), 4, d ? '#5fd35f' : '#ffd24a');
+    txt(v+'/'+q.goal, 297, y+16, '#fff', 1, 2);
+
+    // Interactive Action Button: [ FIGHT! ]
+    const btnW = 54, btnH = 20, btnX = 408, btnY = y + 3;
+    if(!d){
+      box(btnX, btnY, btnW, btnH, isSel ? '#ff8a2a' : '#d85810', OUT, '#ffe45a');
+      txt('FIGHT!', btnX + btnW/2, btnY + 5, '#fff', 1, 1, OUT);
+    } else {
+      box(btnX, btnY, btnW, btnH, '#1c4a2a', OUT, '#5fd35f');
+      txt('PLAY', btnX + btnW/2, btnY + 5, '#5fd35f', 1, 1, OUT);
+    }
+    hot(btnX - 2, btnY - 2, btnW + 4, btnH + 4, ()=>{ launchQuest(q); });
+
+    // Entire row click
+    hot(12, y, 392, 26, ()=>{
+      if(questIdx === i){
+        launchQuest(q);
+      } else {
+        questIdx = i;
+        SFX.ui();
+      }
+    });
+  }
+
+  // Scrollbar
+  if(QUESTS.length > 7){
+    const bh = 150, ty = 46 + Math.round((bh) * questScroll / (QUESTS.length - 7));
+    R_(472, 46, 4, 196, '#2a2550');
+    R_(472, ty, 4, 30, '#ffd24a');
+  }
+
+  // Bottom action bar
+  box(10, H-22, 68, 18, '#2d2762', OUT, '#9ad8ff');
+  txt('< BACK', 44, H-17, '#9ad8ff', 1, 1, OUT);
+  hot(8, H-24, 72, 22, ()=>{ SFX.back(); setScene('menu'); });
+
+  txt('UP/DOWN: SELECT   ENTER/TAP: START QUEST   ESC: BACK', W/2 + 25, H-12, '#6a64a8', 1, 1);
+}
 
 // ---- scene: how to play ----------------------------------------------------------------------------------
 const HOW=[
