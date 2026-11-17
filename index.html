@@ -1286,7 +1286,7 @@ function titleRender(){
   if(((NOW/500)|0)%2) txt('PRESS START',W/2,200,'#ffffff',2,1,OUT);
   txt('ENTER / SPACE / J / TAP',W/2,222,'#9ad8ff',1,1,OUT);
   hot(0,0,W,H,()=>{ SFX.ok(); setScene('menu'); });
-  txt('V1.2 (NOVA)',W-6,H-10,'#a884f0',1,2);
+  txt('V1.3 (COSMIC LAYER)',W-6,H-10,'#ffd24a',1,2);
 }
 
 // ---- scene: menu ---------------------------------------------------------------------------
@@ -1331,11 +1331,18 @@ function oppRender(){
 const GRID=[[0,1,2],[3,4,5]];
 const COLS=5;
 function selTile(ci){
-  const tw=72, th=58, gap_x=76, gap_y=66;
-  const row=ci<6?0:1;
-  const col=row===0?ci:(ci-6);
-  const left=14;
-  return {x:left+col*gap_x, y:28+row*gap_y, w:tw, h:th};
+  const tw=70, th=39, gap_x=76;
+  if(ci < 6){ // Layer 1: Starter / Tier 1 (6 slimes)
+    return {x: 12 + ci * gap_x, y: 22, w: tw, h: th};
+  } else if(ci < 12){ // Layer 2: Challenger / Tier 2 (6 slimes)
+    return {x: 12 + (ci - 6) * gap_x, y: 64, w: tw, h: th};
+  } else { // Layer 3: Cosmic / Secret Layer (NOVA)
+    const extra_idx = ci - 12; // 0 for nova
+    const total_extra = Math.max(1, CH.length - 12);
+    const extra_w = 88;
+    const start_x = Math.round((W - (total_extra * (extra_w + 8) - 8)) / 2);
+    return {x: start_x + extra_idx * (extra_w + 8), y: 106, w: extra_w, h: th};
+  }
 }
 function selActive(){ const two=mode.id==='versus'&&cfg.opp===0; if(run&&run.kind==='online') return [net.slot]; return two?[0,1]:[0]; }
 function cycleSkin(s){ const sl=sel[s], n=SKINS[CH[sl.ci].id].length; for(let k=1;k<=n;k++){ const ns=(sl.sk+k)%n; if(skinUnlocked(sl.ci,ns)){ sl.sk=ns; break; } } SAVE.skin[CH[sl.ci].id]=sl.sk; save(); SFX.ui(); }
@@ -1346,10 +1353,24 @@ function selectUpdate(){
   for(const s of act){ const sl=sel[s]; const m=(act.length===2)?MENU_PRESSED[s]:(MENU_PRESSED[0]|MENU_PRESSED[1]);
     if(!sl.ready){
       let c=sl.cur;
-      if(m&IL){ if(c<6) c=(c-1+6)%6; else c=6+(c-6-1+6)%6; }
-      if(m&IR){ if(c<6) c=(c+1)%6; else c=6+(c-6+1)%6; }
-      if(m&IU){ if(c>=6) c=c-6; }
-      if(m&ID){ if(c<6) c=Math.min(CH.length-1,c+6); }
+      if(m&IL){
+        if(c < 6) c = (c - 1 + 6) % 6;
+        else if(c < 12) c = 6 + (c - 6 - 1 + 6) % 6;
+        else if(CH.length > 13) c = 12 + (c - 12 - 1 + (CH.length - 12)) % (CH.length - 12);
+      }
+      if(m&IR){
+        if(c < 6) c = (c + 1) % 6;
+        else if(c < 12) c = 6 + (c - 6 + 1) % 6;
+        else if(CH.length > 13) c = 12 + (c - 12 + 1) % (CH.length - 12);
+      }
+      if(m&IU){
+        if(c >= 12) c = 8; // From layer 3 (Nova), jump to center of layer 2
+        else if(c >= 6) c = c - 6; // From layer 2, jump to layer 1
+      }
+      if(m&ID){
+        if(c < 6) c = c + 6; // From layer 1 to layer 2
+        else if(c < 12) c = Math.min(CH.length - 1, 12); // From layer 2 down to layer 3 (Nova)
+      }
       if(m&(IL|IR|IU|ID)){ sl.cur=Math.min(CH.length-1,c); SFX.ui(); sl.ci=sl.cur; sl.sk=slimeUnlocked(sl.cur)?(SAVE.skin[CH[sl.cur].id]|0):0; if(!skinUnlocked(sl.cur,sl.sk)) sl.sk=0; }
       if(m&IB&&slimeUnlocked(sl.cur)) cycleSkin(s);
     }
@@ -1369,16 +1390,29 @@ function selectRender(){
   R_(0,0,W,H,'#14102c'); for(let i=0;i<10;i++) R_(0,i*30+((NOW/50)%30|0)-30,W,1,'#1d1840');
   txt('CHOOSE YOUR SLIME',W/2,10,'#ffd24a',2,1,OUT);
   const act=selActive();
+  // Layer labels / dividers
+  txt('TIER 1', 12, 14, '#6a64a8', 1, 0);
+  txt('TIER 2', 12, 56, '#6a64a8', 1, 0);
+  txt('COSMIC LAYER', W/2, 98, '#ffd24a', 1, 1, OUT);
+
   for(let ci=0;ci<CH.length;ci++){ const t=selTile(ci), un=slimeUnlocked(ci);
-    box(t.x,t.y,t.w,t.h,un?'#201a46':'#120f28',OUT,'#4a4380');
+    const isNova = ci >= 12;
+    const borderCol = isNova ? '#a884f0' : '#4a4380';
+    const bgCol = un ? (isNova ? '#2c1e4e' : '#201a46') : '#120f28';
+    box(t.x,t.y,t.w,t.h,bgCol,OUT,borderCol);
+    if(isNova && un){
+      // subtle cosmic shimmer border
+      const pulse = ((NOW/300)%1);
+      R_(t.x,t.y,t.w,1,'#c89bff');
+    }
     const hov=act.filter(s=>sel[s].cur===ci);
-    blobHead(ci,0,t.x+t.w/2,t.y+42,un?null:undefined,!un?1:0);
-    txt(un?CH[ci].name:'???',t.x+t.w/2,t.y+49,un?'#fff':'#6a64a8',1,1);
+    blobHead(ci,0,t.x+t.w/2,t.y+27,un?null:undefined,!un?1:0);
+    txt(un?CH[ci].name:'???',t.x+t.w/2,t.y+32,un?(isNova?'#c89bff':'#fff'):'#6a64a8',1,1);
     if(!un){
-      if(ci===CHI.jack) txt('7-DAY QUEST',t.x+t.w/2,t.y+8,'#ffd24a',1,1,OUT);
-      else txt('LOCKED',t.x+t.w/2,t.y+8,'#ff7a7a',1,1);
+      if(ci===CHI.jack) txt('7-DAY',t.x+t.w/2,t.y+5,'#ffd24a',1,1,OUT);
+      else txt('LOCKED',t.x+t.w/2,t.y+5,'#ff7a7a',1,1);
     } else if(ci===CHI.jack){
-      txt(jackTimeStr()+' LEFT',t.x+t.w/2,t.y+8,'#7ae26a',1,1,OUT);
+      txt(jackTimeStr()+' LEFT',t.x+t.w/2,t.y+5,'#7ae26a',1,1,OUT);
     }
     hot(t.x,t.y,t.w,t.h,()=>{ const s=act[0]; if(sel[s].cur===ci&&!sel[s].ready) selectConfirm(s); else if(!sel[s].ready){ sel[s].cur=ci; sel[s].ci=ci; SFX.ui(); } });
     for(const s of hov){ const col=s===0?'#ff5a5a':'#5aa8ff'; const off=hov.length>1?(s?3:0):0; R_(t.x-1+off,t.y-1+off,t.w+2-off*2,2,col); R_(t.x-1+off,t.y+t.h-1-off,t.w+2-off*2,2,col); R_(t.x-1+off,t.y-1+off,2,t.h+2-off*2,col); R_(t.x+t.w-1-off,t.y-1+off,2,t.h+2-off*2,col);
@@ -1386,7 +1420,7 @@ function selectRender(){
     if(run&&run.kind==='online'&&net.opp&&net.opp.sel===ci){ txt('OPP'+(net.opp.rdy?' OK':''),t.x+t.w/2,t.y+14,'#5aa8ff',1,1,OUT); }
   }
   // info panels
-  const n=act.length, pw=n===2?228:300; act.forEach((s,k)=>{ const sl=sel[s], ci=sl.cur, C=CH[ci], un=slimeUnlocked(ci), px=n===2?(k?240:12):Math.round(W/2-pw/2), py=166, tx=px+72, mc=Math.floor((pw-80)/6);
+  const n=act.length, pw=n===2?228:300; act.forEach((s,k)=>{ const sl=sel[s], ci=sl.cur, C=CH[ci], un=slimeUnlocked(ci), px=n===2?(k?240:12):Math.round(W/2-pw/2), py=150, tx=px+72, mc=Math.floor((pw-80)/6);
     panel(px,py,pw,92,null); const col=s===0?'#ff5a5a':'#5aa8ff'; txt('P'+(s+1),px+6,py+6,col,1,0,OUT);
     const wrap=(str,max)=>{ const w=str.split(' '),L=[]; let c=''; for(const x of w){ if((c+' '+x).trim().length>max){ L.push(c); c=x; } else c=(c+' '+x).trim(); } if(c) L.push(c); return L; };
     if(un){ drawPreview(ci,sl.sk,px+36,py+58,(NOW/16)|0); txt(C.name+' - '+C.title+(ci===CHI.jack?' ('+jackTimeStr()+' LEFT)':''),tx,py+6,ci===CHI.jack?'#ffd24a':'#fff',1,0,OUT);
