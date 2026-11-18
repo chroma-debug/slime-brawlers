@@ -1001,6 +1001,12 @@ try {
       SAVE.skin = Object.assign({}, BAKED_SAVE.skin, o.skin || {});
     }
   }
+  // Auto-verify Nova and other quest completions on load
+  const nWins = Math.max(SAVE.stats.wins || 0, SAVE.stats.novaWinsQ || 0);
+  if (nWins >= 5 || SAVE.skin.nova != null) {
+    SAVE.done['q_nova'] = 1;
+    if (SAVE.skin.nova == null) SAVE.skin.nova = 0;
+  }
   localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE));
 } catch(e) {}
 function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE)); }catch(e){} }
@@ -1008,7 +1014,7 @@ function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE)); }catc
 // ---- quests: edit this list to add your own -------------------------------------------
 // stat: which counter it watches   goal: value needed   reward: {slime:'id'} or {skin:['id',skinIndex]}
 const QUESTS=[
-  {id:'q_nova',   name:'STARLIGHT VOYAGE', desc:'WIN 5 MATCHES',                 stat:'novaWinsQ', goal:5, reward:{slime:'nova'}},
+  {id:'q_nova',   name:'STARLIGHT VOYAGE', desc:'WIN 5 MATCHES',                 stat:'wins', goal:5, reward:{slime:'nova'}},
   {id:'q_s_nova1',name:'SOLAR FLARE',      desc:'WIN 2 MATCHES AS NOVA',         stat:'novaWins',  goal:2, reward:{skin:['nova',1]}},
   {id:'q_aseprite',   name:'PIXEL FORGER', desc:'WIN 5 MATCHES',                 stat:'pixelWins', goal:5,  reward:{slime:'aseprite'}},
   {id:'q_s_aseprite1',name:'NEON DREAMS',  desc:'WIN 2 MATCHES AS ASEPRITE',    stat:'aseSkinWins',goal:2, reward:{skin:['aseprite',1]}},
@@ -1050,22 +1056,61 @@ function slimeUnlocked(ci){
   if(SAVE.devAll) return true;
   const id=CH[ci].id;
   if(id==='ruby'||id==='hatter') return true;
+  if(id==='nova'){
+    const nWins = Math.max(SAVE.stats.wins||0, SAVE.stats.novaWinsQ||0);
+    if(SAVE.done['q_nova'] || nWins >= 5 || (SAVE.skin && SAVE.skin.nova != null)){
+      if(!SAVE.done['q_nova']){ SAVE.done['q_nova'] = 1; save(); }
+      return true;
+    }
+  }
   if(id==='jack'){
     const left=jackRemainingTime();
     if(left>0) return true;
     if(SAVE.jackExpires&&left<=0){ delete SAVE.done['q_jack']; delete SAVE.jackExpires; save(); }
     return false;
   }
-  return QUESTS.some(q=>q.reward.slime===id&&SAVE.done[q.id]);
+  return QUESTS.some(q=>{
+    if(q.reward.slime!==id) return false;
+    if(SAVE.done[q.id]) return true;
+    const statVal = (q.stat==='novaWinsQ'||q.id==='q_nova' ? Math.max(SAVE.stats.novaWinsQ||0, SAVE.stats.wins||0) : (SAVE.stats[q.stat]||0));
+    if(statVal >= q.goal){
+      SAVE.done[q.id] = 1;
+      save();
+      return true;
+    }
+    return false;
+  });
 }
-function skinUnlocked(ci,sk){ if(SAVE.devAll||!sk) return true; const id=CH[ci].id; return QUESTS.some(q=>q.reward.skin&&q.reward.skin[0]===id&&q.reward.skin[1]===sk&&SAVE.done[q.id]); }
+function skinUnlocked(ci,sk){
+  if(SAVE.devAll||!sk) return true;
+  const id=CH[ci].id;
+  return QUESTS.some(q=>{
+    if(!q.reward.skin || q.reward.skin[0]!==id || q.reward.skin[1]!==sk) return false;
+    if(SAVE.done[q.id]) return true;
+    const statVal = (SAVE.stats[q.stat]||0);
+    if(statVal >= q.goal){
+      SAVE.done[q.id] = 1;
+      save();
+      return true;
+    }
+    return false;
+  });
+}
 function questFor(ci,sk){ const id=CH[ci].id; return QUESTS.find(q=>sk==null?q.reward.slime===id:(q.reward.skin&&q.reward.skin[0]===id&&q.reward.skin[1]===sk)); }
 function bumpStat(k,v){ if(MAXSTATS[k]) SAVE.stats[k]=Math.max(SAVE.stats[k]||0,v); else SAVE.stats[k]=(SAVE.stats[k]||0)+v; }
-function checkQuests(){ const out=[]; for(const q of QUESTS){ if(!SAVE.done[q.id]&&(SAVE.stats[q.stat]||0)>=q.goal){
-  if(q.reward.slime==='jack'){ const dur=(q.reward.days||7)*24*3600*1000; SAVE.jackExpires=Date.now()+dur; SAVE.done[q.id]=SAVE.jackExpires; }
-  else { SAVE.done[q.id]=1; }
-  out.push(q);
-} } if(out.length) save(); return out; }
+function checkQuests(){
+  const out=[];
+  for(const q of QUESTS){
+    const statVal = (q.stat==='novaWinsQ'||q.id==='q_nova' ? Math.max(SAVE.stats.novaWinsQ||0, SAVE.stats.wins||0) : (SAVE.stats[q.stat]||0));
+    if(!SAVE.done[q.id] && statVal >= q.goal){
+      if(q.reward.slime==='jack'){ const dur=(q.reward.days||7)*24*3600*1000; SAVE.jackExpires=Date.now()+dur; SAVE.done[q.id]=SAVE.jackExpires; }
+      else { SAVE.done[q.id]=1; }
+      out.push(q);
+    }
+  }
+  if(out.length) save();
+  return out;
+}
 function rewardText(q){ if(q.reward.slime==='jack') return 'JACK SLIME (7 DAYS PASS)'; return q.reward.slime?CH[CHI[q.reward.slime]].name+' SLIME':CH[CHI[q.reward.skin[0]]].name+' '+SKINS[q.reward.skin[0]][q.reward.skin[1]].n+' SKIN'; }
 
 // ---- audio ---------------------------------------------------------------------
@@ -1267,7 +1312,7 @@ function resultsPick(i){
   else if(o.indexOf('RECOVER')===0){ recoverStreak(); }
 }
 function leaveToMenu(){ if(run&&run.kind==='online') netLeave(); run=null; G=null; setScene('menu'); }
-function goSelect(){ sel[0].ready=0; sel[1].ready=0; sel[0].cur=sel[0].ci; sel[1].cur=sel[1].ci; const two=mode.id==='versus'&&cfg.opp===0; if(!two) sel[1].ready=1; setScene('select'); }
+function goSelect(){ checkQuests(); sel[0].ready=0; sel[1].ready=0; sel[0].cur=sel[0].ci; sel[1].cur=sel[1].ci; const two=mode.id==='versus'&&cfg.opp===0; if(!two) sel[1].ready=1; setScene('select'); }
 
 // ---- scene: title ------------------------------------------------------------------------
 function newAttract(){ const a=(Math.random()*CH.length)|0; let b=(Math.random()*CH.length)|0; if(b===a) b=(b+1)%CH.length; attract={G:newMatch(a,b,(Math.random()*1e6)|0,(Math.random()*3)|0,{wins:1,timer:3600}),m:[{cool:0,hold:0},{cool:0,hold:0}],sk:[0,0],t:0}; }
@@ -1286,7 +1331,7 @@ function titleRender(){
   if(((NOW/500)|0)%2) txt('PRESS START',W/2,200,'#ffffff',2,1,OUT);
   txt('ENTER / SPACE / J / TAP',W/2,222,'#9ad8ff',1,1,OUT);
   hot(0,0,W,H,()=>{ SFX.ok(); setScene('menu'); });
-  txt('V1.4 (QUEST FIX & PLAY)',W-6,H-10,'#ffd24a',1,2);
+  txt('V1.5 (NOVA UNLOCK & PICK)',W-6,H-10,'#ffd24a',1,2);
 }
 
 // ---- scene: menu ---------------------------------------------------------------------------
@@ -1374,7 +1419,7 @@ function selectUpdate(){
       if(m&(IL|IR|IU|ID)){ sl.cur=Math.min(CH.length-1,c); SFX.ui(); sl.ci=sl.cur; sl.sk=slimeUnlocked(sl.cur)?(SAVE.skin[CH[sl.cur].id]|0):0; if(!skinUnlocked(sl.cur,sl.sk)) sl.sk=0; }
       if(m&IB&&slimeUnlocked(sl.cur)) cycleSkin(s);
     }
-    if((m&IA)||(act.length===1&&enterPressed)) selectConfirm(s);
+    if((m&IA)||enterPressed) selectConfirm(s);
     if(m&IC){ if(sl.ready){ sl.ready=0; SFX.back(); if(run&&run.kind==='online') netSendSel(); } else if(s===act[0]||act.length===1){ SFX.back(); backFromSelect(); } }
   }
   if((escPressed||backPressed)){ backFromSelect(); }
@@ -1383,6 +1428,7 @@ function selectUpdate(){
     if(mode.id==='arcade'){ startArcade(); }
     else if(mode.id==='survival'){ startSurvival(); }
     else if(mode.id==='training'||mode.id==='versus'||mode.id==='sumo'||mode.id==='frenzy'){ stageIdx=0; setScene('stage'); }
+    else { stageIdx=0; setScene('stage'); }
   }
 }
 function backFromSelect(){ if(run&&run.kind==='online'){ netLeave(); run=null; setScene('menu'); return; } setScene(mode.opp?'opp':'menu'); }
@@ -1414,7 +1460,11 @@ function selectRender(){
     } else if(ci===CHI.jack){
       txt(jackTimeStr()+' LEFT',t.x+t.w/2,t.y+5,'#7ae26a',1,1,OUT);
     }
-    hot(t.x,t.y,t.w,t.h,()=>{ const s=act[0]; if(sel[s].cur===ci&&!sel[s].ready) selectConfirm(s); else if(!sel[s].ready){ sel[s].cur=ci; sel[s].ci=ci; SFX.ui(); } });
+    hot(t.x,t.y,t.w,t.h,()=>{
+      const s = act.find(slot=>!sel[slot].ready) ?? act[0];
+      if(sel[s].cur===ci && !sel[s].ready) selectConfirm(s);
+      else if(!sel[s].ready){ sel[s].cur=ci; sel[s].ci=ci; SFX.ui(); }
+    });
     for(const s of hov){ const col=s===0?'#ff5a5a':'#5aa8ff'; const off=hov.length>1?(s?3:0):0; R_(t.x-1+off,t.y-1+off,t.w+2-off*2,2,col); R_(t.x-1+off,t.y+t.h-1-off,t.w+2-off*2,2,col); R_(t.x-1+off,t.y-1+off,2,t.h+2-off*2,col); R_(t.x+t.w-1-off,t.y-1+off,2,t.h+2-off*2,col);
       txt('P'+(s+1)+(sel[s].ready?' OK':''),s?t.x+t.w-2:t.x+3,t.y+4,col,1,s?2:0,OUT); }
     if(run&&run.kind==='online'&&net.opp&&net.opp.sel===ci){ txt('OPP'+(net.opp.rdy?' OK':''),t.x+t.w/2,t.y+14,'#5aa8ff',1,1,OUT); }
@@ -1423,14 +1473,33 @@ function selectRender(){
   const n=act.length, pw=n===2?228:300; act.forEach((s,k)=>{ const sl=sel[s], ci=sl.cur, C=CH[ci], un=slimeUnlocked(ci), px=n===2?(k?240:12):Math.round(W/2-pw/2), py=150, tx=px+72, mc=Math.floor((pw-80)/6);
     panel(px,py,pw,92,null); const col=s===0?'#ff5a5a':'#5aa8ff'; txt('P'+(s+1),px+6,py+6,col,1,0,OUT);
     const wrap=(str,max)=>{ const w=str.split(' '),L=[]; let c=''; for(const x of w){ if((c+' '+x).trim().length>max){ L.push(c); c=x; } else c=(c+' '+x).trim(); } if(c) L.push(c); return L; };
-    if(un){ drawPreview(ci,sl.sk,px+36,py+58,(NOW/16)|0); txt(C.name+' - '+C.title+(ci===CHI.jack?' ('+jackTimeStr()+' LEFT)':''),tx,py+6,ci===CHI.jack?'#ffd24a':'#fff',1,0,OUT);
+    if(un){ drawPreview(ci,sl.sk,px+36,py+58,(NOW/16)|0); txt(C.name+' - '+C.title+(ci===CHI.jack?' ('+jackTimeStr()+' LEFT)':''),tx,py+6,ci===CHI.jack?'#ffd24a':(ci>=12?'#c89bff':'#fff'),1,0,OUT);
+      box(px+pw-68, py+4, 62, 18, sl.ready?'#1d3a2a':'#2d2762', OUT, sl.ready?'#5fd35f':'#ffd24a');
+      txt(sl.ready?'READY!':'PICK [F]', px+pw-37, py+9, sl.ready?'#5fd35f':'#ffd24a', 1, 1, OUT);
+      hot(px+pw-70, py+2, 66, 22, ()=>{ selectConfirm(s); });
       txt('SPECIAL: '+C.spName,tx,py+18,'#ffe45a',1,0); wrap(C.spDesc,mc).slice(0,2).forEach((l,i)=>txt(l,tx,py+29+i*10,'#d8d4ff',1,0));
       wrap(C.passive+': '+C.passiveDesc,mc).slice(0,2).forEach((l,i)=>txt(l,tx,py+51+i*10,'#c4f7a8',1,0));
       const stn=['PWR','SPD','DEF']; for(let q=0;q<3;q++){ const bx=tx+q*50; txt(stn[q],bx,py+77,'#9ad8ff',1,0); for(let b=0;b<5;b++) R_(bx+19+b*5,py+77,4,6,b<C.stats[q]?'#ffd24a':'#2a2550'); }
       const sk=SKINS[C.id], skn=sk[sl.sk]?sk[sl.sk].n:''; txt(skn,px+36,py+68,'#fff',1,1,OUT); txt(sk.length>1?'< SKIN >':'',px+36,py+78,'#6a64a8',1,1); hot(px+2,py+62,70,22,()=>cycleSkin(s));
-    } else { drawPreview(ci,0,px+36,py+66,0,1); const q=questFor(ci); txt('LOCKED SLIME',tx,py+6,'#ff7a7a',1,0,OUT); if(q){ txt('QUEST: '+q.name,tx,py+22,'#ffd24a',1,0); wrap(q.desc,mc).forEach((l,i)=>txt(l,tx,py+34+i*10,'#fff',1,0)); txt('PROGRESS '+Math.min(q.goal,SAVE.stats[q.stat]||0)+'/'+q.goal,tx,py+58,'#9ad8ff',1,0); } }
+    } else {
+      drawPreview(ci,0,px+36,py+66,0,1); const q=questFor(ci);
+      const isDone = q && ((SAVE.stats[q.stat]||0)>=q.goal || (q.id==='q_nova'&&((SAVE.stats.wins||0)>=5||(SAVE.stats.novaWinsQ||0)>=5)));
+      if(isDone){
+        SAVE.done[q.id]=1; save();
+        box(px+pw-72, py+4, 66, 18, '#1d3a2a', OUT, '#5fd35f');
+        txt('UNLOCK [F]', px+pw-39, py+9, '#5fd35f', 1, 1, OUT);
+        hot(px+pw-74, py+2, 70, 22, ()=>{ selectConfirm(s); });
+      }
+      txt('LOCKED SLIME',tx,py+6,'#ff7a7a',1,0,OUT);
+      if(q){
+        txt('QUEST: '+q.name,tx,py+22,'#ffd24a',1,0);
+        wrap(q.desc,mc).forEach((l,i)=>txt(l,tx,py+34+i*10,'#fff',1,0));
+        const curStat = (q.id==='q_nova'?Math.max(SAVE.stats.wins||0,SAVE.stats.novaWinsQ||0):(SAVE.stats[q.stat]||0));
+        txt('PROGRESS '+Math.min(q.goal,curStat)+'/'+q.goal,tx,py+58,isDone?'#5fd35f':'#9ad8ff',1,0);
+      }
+    }
   });
-  const hint=run&&run.kind==='online'?'F = READY   C/H = CANCEL':'F/K = PICK   G/L = SKIN   H/; = BACK'; txt(hint,W/2,H-9,'#6a64a8',1,1);
+  const hint=run&&run.kind==='online'?'F = READY   C/H = CANCEL':'F / ENTER = PICK   G/L = SKIN   H / ESC = BACK'; txt(hint,W/2,H-9,'#6a64a8',1,1);
 }
 
 // ---- scene: stage select ---------------------------------------------------------------------
@@ -1726,6 +1795,7 @@ function initGame(){
   cv=document.getElementById('game'); ctx=cv.getContext('2d'); cv.width=W; cv.height=H; ctx.imageSmoothingEnabled=false; resetRS();
   cv.addEventListener('pointerdown',e=>{ audioInit(); const [x,y]=canvasPoint(e); for(let i=HOT.length-1;i>=0;i--){ const h=HOT[i]; if(x>=h.x&&x<h.x+h.w&&y>=h.y&&y<h.y+h.h){ h.fn(); break; } } });
   for(let i=0;i<CH.length;i++){ if(SAVE.skin[CH[i].id]==null) SAVE.skin[CH[i].id]=0; }
+  checkQuests();
   sel[0].ci=0; sel[1].ci=0; sel[1].cur=0; newAttract(); requestAnimationFrame(frame);
 }
 
