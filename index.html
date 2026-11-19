@@ -625,7 +625,6 @@ function decorTop(C,cx,top,face,now,pal,rs){
   else if(id==='volt'){ const bolt=(x,h,s)=>{ for(let r=0;r<h;r++){ const o=(r%4<2?0:s); R_(x+o-1,top-r-1,4,1,OUT); } for(let r=0;r<h;r++){ const o=(r%4<2?0:s); R_(x+o,top-r-1,2,1,r>h-4?'#fffbc8':'#ffe14a'); } };
       bolt(cx-6,8,2); bolt(cx,12,-2); bolt(cx+5,7,2);
       if(((now/90)|0)%5===0){ R_(cx+8,top-6,2,2,'#7affff'); R_(cx-9,top-3,2,2,'#7affff'); } }
-  else if(id==='nova'){ R_(cx-5,top+H2*.45,2,2,'#ffffff'); R_(cx+4,top+H2*.65,2,2,pal.eye); R_(cx-2,top+H2*.78,1,1,'#ffffff'); R_(cx+2,top+H2*.38,1,1,pal.acc); }
   if(id==='void'){ const hornC='#ff4fd8'; for(const s of [-1,1]){ const x=cx+s*7; for(let r=0;r<8;r++){ const w=Math.max(1,4-Math.floor(r/2)); R_(x+s*Math.floor(r/3)-Math.floor(w/2)-1,top-r-1,w+2,1,OUT); }
       for(let r=0;r<8;r++){ const w=Math.max(1,4-Math.floor(r/2)); R_(x+s*Math.floor(r/3)-Math.floor(w/2),top-r-1,w,1,r<5?'#4a1f8a':hornC); } } }
 }
@@ -644,6 +643,7 @@ function bodyDecor(C,b,face,now,pal,flash){
   if(id==='volt'){ const y=top+H2*.68, zx=cx-3; R_(zx+1,y,3,1,pal.dark); R_(zx,y+1,3,1,pal.dark); R_(zx+1,y+2,3,1,pal.dark); R_(zx,y+3,2,1,pal.dark); }
   if(id==='ember'){ R_(cx-6,top+H2*.72,2,2,'#ffd08a'); R_(cx+5,top+H2*.62,2,2,'#ffd08a'); R_(cx+1,top+H2*.8,2,1,'#ffe45a'); }
   if(id==='void'){ R_(cx-8,top+H2*.7,3,1,pal.acc); R_(cx+5,top+H2*.65,3,1,pal.acc); R_(cx-1,top+H2*.82,3,1,pal.acc); }
+  if(id==='nova'){ R_(cx-5,top+H2*.45,2,2,'#ffffff'); R_(cx+4,top+H2*.65,2,2,pal.eye); R_(cx-2,top+H2*.78,1,1,'#ffffff'); R_(cx+2,top+H2*.38,1,1,pal.acc); }
 }
 
 // ---- slime animation pose ------------------------------------------------------------------
@@ -1331,7 +1331,7 @@ function titleRender(){
   if(((NOW/500)|0)%2) txt('PRESS START',W/2,200,'#ffffff',2,1,OUT);
   txt('ENTER / SPACE / J / TAP',W/2,222,'#9ad8ff',1,1,OUT);
   hot(0,0,W,H,()=>{ SFX.ok(); setScene('menu'); });
-  txt('V1.5 (NOVA UNLOCK & PICK)',W-6,H-10,'#ffd24a',1,2);
+  txt('V1.6 (NOVA FIX & COSMIC READY)',W-6,H-10,'#ffd24a',1,2);
 }
 
 // ---- scene: menu ---------------------------------------------------------------------------
@@ -1549,15 +1549,15 @@ function renderFightWorld(G,now){
   ctx.save(); if(G.shake>0&&scene==='fight'){ ctx.translate(Math.round((Math.random()-.5)*G.shake),Math.round((Math.random()-.5)*G.shake)); }
   drawStage(G.stage,G.ring,now);
   const order=[0,1]; if(G.f[0].st===S_ATK&&G.f[1].st!==S_ATK||G.f[1].st===S_FALL||G.f[1].st===S_KO) order.reverse(); if(G.f[1].st===S_ATK&&G.f[0].st!==S_ATK) order.reverse(); const sk=run?run.skins:[0,0];
-  for(const i of [1,0]) if(G.f[i].st===S_KO||G.f[i].st===S_DOWN) drawSlime(G.f[i],i,now,sk[i]);
-  for(const i of order) if(!(G.f[i].st===S_KO||G.f[i].st===S_DOWN)) drawSlime(G.f[i],i,now,sk[i]);
+  for(const i of [1,0]) if(G.f[i].st===S_KO||G.f[i].st===S_DOWN) { try{ drawSlime(G.f[i],i,now,sk[i]); }catch(e){} }
+  for(const i of order) if(!(G.f[i].st===S_KO||G.f[i].st===S_DOWN)) { try{ drawSlime(G.f[i],i,now,sk[i]); }catch(e){} }
   drawProj(G,now); drawPT();
   if(run&&run.kind==='online'&&G.phase===P_INTRO){ const f=G.f[net.slot]; R_(f.x-1,f.y-CH[f.ch].hh-24,3,3,'#ffd24a'); txt('YOU',f.x,f.y-CH[f.ch].hh-36,'#ffd24a',1,1,OUT); }
   ctx.restore();
 }
 function fightRender(){
   renderFightWorld(G,NOW);
-  drawHUD(G,NOW,run.names.map((n,i)=>n||CH[G.f[i].ch].name),{skins:run.skins});
+  try{ drawHUD(G,NOW,run.names.map((n,i)=>n||CH[G.f[i].ch].name),{skins:run.skins}); }catch(e){}
   if(run.kind==='arcade') txt('STAGE '+(run.idx+1),W/2,32,'#9ad8ff',1,1,OUT); if(run.kind==='survival') txt('WAVE '+run.wave,W/2,32,'#9ad8ff',1,1,OUT);
   if(mode&&mode.id==='training'){ txt('TRAINING  -  ESC = MENU',W/2,H-30,'#9ad8ff',1,1,OUT); for(let i=0;i<2;i++){ const f=G.f[i]; if(f.combo>0&&i===1) txt('COMBO '+f.combo+'  DMG '+f.dmgTaken,W/2,H-42,'#ffd24a',1,1,OUT); } }
   if(run.kind==='online'){ netOverlay(); }
