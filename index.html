@@ -1078,7 +1078,7 @@ const SAVE_KEY='slimebrawlers_v1';
 const SEVEN_DAYS = 7 * 24 * 3600 * 1000;
 const BAKED_SAVE = {
   done: {"q_dethking":1,"q_s_hatter1":1,"q_s_twin1":1,"q_gloop":1,"q_volt":1,"q_ember":1,"q_frost":1,"q_s_ruby1":1,"q_s_gloop1":1,"q_twin":1,"q_rocky":1,"q_void":1,"q_s_volt1":1,"q_s_god1":1,"q_god":1,"q_s_void1":1,"q_s_ember1":1,"q_s_frost1":1,"q_s_gloop2":1,"q_s_rocky1":1,"q_nova":1},
-  stats: {"wins":50,"played":74,"blocks":374,"specials":336,"perfects":15,"arcade":1,"sumoWins":4,"ringouts":9,"combo":32,"survival":5,"pixelWins":5,"aseSkinWins":2,"novaWinsQ":5,"novaWins":2,"dethWins":2,"dethWinsQ":50},
+  stats: {"wins":50,"played":74,"blocks":374,"specials":336,"perfects":15,"arcade":1,"sumoWins":4,"ringouts":9,"combo":32,"survival":5,"pixelWins":5,"aseSkinWins":2,"novaWinsQ":5,"novaWins":2,"dethWins":0,"dethWinsQ":50},
   skin: {"ruby":1,"hatter":1,"twin":1,"god":1,"gloop":2,"ember":1,"frost":1,"rocky":1,"volt":1,"void":1,"jack":0,"aseprite":0,"aesprite":0,"nova":1,"dethking":0},
   sound: 1, devAll: 0, pid: "blv6q15u3xbovku9ah5s", name: "YOUR NAME", nameAuto: 0, coins: 3, server: ""
 };
@@ -1101,10 +1101,21 @@ try {
     if (SAVE.skin.nova == null) SAVE.skin.nova = 0;
   }
   const dWins = Math.max(SAVE.stats.wins || 0, SAVE.stats.dethWinsQ || 0);
-  if (dWins >= 50 || SAVE.skin.dethking != null) {
+  if (dWins >= 50 || (SAVE.stats.wins || 0) >= 50) {
     SAVE.done['q_dethking'] = 1;
     if (SAVE.skin.dethking == null) SAVE.skin.dethking = 0;
   }
+
+  // Ensure Lich Ascendancy and Golden Dynasty skin quests are NOT pre-completed (must win matches as Deth King)
+  if (!SAVE._dethFixV1) {
+    SAVE._dethFixV1 = 1;
+    SAVE.stats.dethWins = 0;
+    delete SAVE.done['q_s_dethking1'];
+    delete SAVE.done['q_s_dethking2'];
+    SAVE.skin.dethking = 0;
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); } catch(e){}
+  }
+
   localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE));
 } catch(e) {}
 function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE)); }catch(e){} }
@@ -1114,6 +1125,7 @@ function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE)); }catc
 const QUESTS=[
   {id:'q_dethking', name:'REAPER CORONATION', desc:'THE KING AWAKENS: WIN 50 MATCHES', stat:'wins', goal:50, reward:{slime:'dethking'}},
   {id:'q_s_dethking1', name:'LICH ASCENDANCY', desc:'WIN 2 MATCHES AS DETH KING', stat:'dethWins', goal:2, reward:{skin:['dethking',1]}},
+  {id:'q_s_dethking2', name:'GOLDEN DYNASTY', desc:'WIN 5 MATCHES AS DETH KING', stat:'dethWins', goal:5, reward:{skin:['dethking',2]}},
   {id:'q_nova',   name:'STARLIGHT VOYAGE', desc:'WIN 5 MATCHES',                 stat:'wins', goal:5, reward:{slime:'nova'}},
   {id:'q_s_nova1',name:'SOLAR FLARE',      desc:'WIN 2 MATCHES AS NOVA',         stat:'novaWins',  goal:2, reward:{skin:['nova',1]}},
   {id:'q_aseprite',   name:'PIXEL FORGER', desc:'WIN 5 MATCHES',                 stat:'pixelWins', goal:5,  reward:{slime:'aseprite'}},
@@ -1208,7 +1220,7 @@ function bumpStat(k,v){ if(MAXSTATS[k]) SAVE.stats[k]=Math.max(SAVE.stats[k]||0,
 function checkQuests(){
   const out=[];
   for(const q of QUESTS){
-    const statVal = (q.stat==='novaWinsQ'||q.id==='q_nova' ? Math.max(SAVE.stats.novaWinsQ||0, SAVE.stats.wins||0) : (SAVE.stats[q.stat]||0));
+    const statVal = (q.stat==='novaWinsQ'||q.id==='q_nova' ? Math.max(SAVE.stats.novaWinsQ||0, SAVE.stats.wins||0) : (q.id==='q_dethking' ? Math.max(SAVE.stats.wins||0, SAVE.stats.dethWinsQ||0) : (SAVE.stats[q.stat]||0)));
     if(!SAVE.done[q.id] && statVal >= q.goal){
       if(q.reward.slime==='jack'){ const dur=(q.reward.days||7)*24*3600*1000; SAVE.jackExpires=Date.now()+dur; SAVE.done[q.id]=SAVE.jackExpires; }
       else { SAVE.done[q.id]=1; }
@@ -1438,7 +1450,7 @@ function titleRender(){
   if(((NOW/500)|0)%2) txt('PRESS START',W/2,200,'#ffffff',2,1,OUT);
   txt('ENTER / SPACE / J / TAP',W/2,222,'#9ad8ff',1,1,OUT);
   hot(0,0,W,H,()=>{ SFX.ok(); setScene('menu'); });
-  txt('V1.7 (DETH KING RISES)',W-6,H-10,'#ffd24a',1,2);
+  txt('V1.7.1 (DETH KING RISES)',W-6,H-10,'#ffd24a',1,2);
 }
 
 // ---- scene: menu ---------------------------------------------------------------------------
