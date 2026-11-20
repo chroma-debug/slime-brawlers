@@ -185,8 +185,16 @@ const CH=[
    mv:{ lt:mk(BASE.lt,{dmg:6,name:'STARDUST JAB'}), hv:mk(BASE.hv,{dmg:12,name:'COSMIC BURST'}), aa:mk(BASE.aa,{dmg:9,name:'SUPERNOVA'}),
         sp:{su:9,ac:2,rc:20,dmg:0,box:[0,0,0,0],kb:[0,0],hs:0,bs:0,hstop:0,spark:2,noBox:1,
             spawn:[9,{kind:'vortex',dx:20,dy:-16,vx:3.8,w:18,h:18,dmg:15,life:100,kb:[2.8,-3.8],hs:24,bs:16,launch:1,spark:2}],name:'EVENT HORIZON'} } },
+  { id:'dethking', atkMul:1.22, kbMul:1.18, name:'DETH KING', title:'REAPER MONARCH', shape:'cube', walk:2.2, back:1.8, jump:-8.0, hw:14, hh:28, stats:[5,5,5],
+    drain:0.20, burn:1,
+    passive:'SOUL HARVEST', passiveDesc:'Supreme stats. Drains 20% HP on hits and inflicts burning cursed flames.', spName:'HARVEST SCYTHE', spDesc:'Hurls a giant spinning death scythe that shreds through foes.',
+    pal:{body:'#ac3232',dark:'#520b10',light:'#e64242',eye:'#ffffff',acc:'#c40a13',acc2:'#ffd700'},
+    mv:{ lt:mk(BASE.lt,{dmg:7,name:'SOUL JAB'}), hv:mk(BASE.hv,{dmg:14,name:'CRIMSON REAP'}), aa:mk(BASE.aa,{dmg:11,name:'DEATH DROP'}),
+         sp:{su:8,ac:2,rc:20,dmg:0,box:[0,0,0,0],kb:[0,0],hs:0,bs:0,hstop:0,spark:3,noBox:1,
+             spawn:[8,{kind:'scythe',dx:22,dy:-16,vx:4.6,w:24,h:24,dmg:18,life:100,kb:[3.4,-4.2],hs:26,bs:18,launch:1,spark:3}],name:'HARVEST SCYTHE'} } },
 ];
 const CHI={}; CH.forEach((c,i)=>{ CHI[c.id]=i; }); if(CHI.aseprite!=null) CHI['aesprite']=CHI.aseprite;
+if(CHI.dethking!=null){ CHI['deathking']=CHI.dethking; CHI['deth_king']=CHI.dethking; }
 
 // ---- state ---------------------------------------------------------
 const DEF_RULES={sumo:0,train:0,frenzy:0,wins:2,timer:3600,hpMax:[100,100],startHp:[0,0],atk:[1,1]};
@@ -496,6 +504,11 @@ function box(x,y,w,h,fill,edge,edge2){ R_(x,y,w,h,edge||OUT); R_(x+1,y+1,w-2,h-2
 // ---- skins -------------------------------------------------------------
 // skin 0 is the slime's own palette. Extra skins are palette swaps (or your own sprite sheets, see SLIME_ART).
 const SKINS={
+  dethking: [
+    {n:'CRIMSON KING'},
+    {n:'LICH LORD',body:'#d8dce8',dark:'#251838',light:'#ffffff',eye:'#00f0ff',acc:'#181424',acc2:'#00f0ff'},
+    {n:'GOLDEN MONARCH',body:'#ffb300',dark:'#4a148c',light:'#ffe082',eye:'#ffffff',acc:'#ff8f00',acc2:'#ffffff'}
+  ],
   nova: [{n:'COSMIC'},{n:'SUPERNOVA',body:'#ff5500',dark:'#8a1800',light:'#ffaa44',eye:'#ffffff',acc:'#00f0ff'}],
  aseprite: [{n:'MONO'},{n:'NEON',body:'#1a162b',dark:'#0d0b1a',light:'#2e284c',eye:'#4df8ff',acc:'#ff5ad0'}],
  aesprite: [{n:'MONO'},{n:'NEON',body:'#1a162b',dark:'#0d0b1a',light:'#2e284c',eye:'#4df8ff',acc:'#ff5ad0'}],
@@ -608,6 +621,40 @@ function decorTop(C,cx,top,face,now,pal,rs){
       const px=Math.round(cx+Math.cos(a+t)*rx), py=Math.round(top+14+Math.sin(a+t)*ry);
       if(Math.sin(a+t)>0) R_(px,py,2,1,(Math.floor(a*2)&1)?pal.eye:pal.acc);
     }
+  } else if(id==='dethking'){
+    const bob = Math.round(Math.sin(now/280)*1.2);
+    const cy = top - 8 + bob;
+    R_(cx-12, cy+4, 24, 6, OUT);
+    R_(cx-11, cy+5, 22, 4, pal.acc);
+    R_(cx-11, cy+7, 22, 2, pal.dark);
+    R_(cx-2, cy+5, 4, 3, pal.acc2||'#ffd700');
+    R_(cx-1, cy+6, 2, 1, '#ffffff');
+    for(let r=0;r<10;r++){
+      const w=Math.max(1,Math.round(2 + r*0.5));
+      const py=cy+4-r;
+      const px=cx-10+Math.round(r*0.3);
+      R_(px-1,py,w+2,1,OUT);
+      R_(px,py,w,1,r<3?pal.dark:pal.acc);
+    }
+    for(let r=0;r<8;r++){
+      const w=Math.max(1,Math.round(3 - r*0.3));
+      const py=cy+4-r;
+      const px=cx-Math.floor(w/2);
+      R_(px-1,py,w+2,1,OUT);
+      R_(px,py,w,1,r<2?(pal.acc2||'#ffd700'):pal.acc);
+    }
+    for(let r=0;r<11;r++){
+      const w=Math.max(1,Math.round(2 + r*0.4));
+      const py=cy+4-r;
+      const px=cx+7-Math.round(r*0.2);
+      R_(px-1,py,w+2,1,OUT);
+      R_(px,py,w,1,r<3?pal.dark:pal.acc);
+    }
+    if(((now/100)|0)%2===0){
+      R_(cx-8, cy-7, 2, 2, pal.acc2||'#ffd700');
+      R_(cx, cy-5, 2, 2, '#ff2a4a');
+      R_(cx+8, cy-8, 2, 2, pal.acc2||'#ffd700');
+    }
   } else if(id==='god'){ const bob=Math.round(Math.sin(now/340)*1.5);
     R_(cx-6,top-5,12,6,OUT); R_(cx-5,top-4,10,5,pal.body); R_(cx-4,top-4,5,1,pal.light); R_(cx-5,top-1,10,1,pal.dark);
     const ry=top-15+bob; for(let a=0;a<6.28;a+=.28){ const px=Math.round(cx+Math.cos(a)*10), py=Math.round(ry+Math.sin(a)*3); R_(px-1,py-1,4,3,OUT); }
@@ -644,6 +691,21 @@ function bodyDecor(C,b,face,now,pal,flash){
   if(id==='ember'){ R_(cx-6,top+H2*.72,2,2,'#ffd08a'); R_(cx+5,top+H2*.62,2,2,'#ffd08a'); R_(cx+1,top+H2*.8,2,1,'#ffe45a'); }
   if(id==='void'){ R_(cx-8,top+H2*.7,3,1,pal.acc); R_(cx+5,top+H2*.65,3,1,pal.acc); R_(cx-1,top+H2*.82,3,1,pal.acc); }
   if(id==='nova'){ R_(cx-5,top+H2*.45,2,2,'#ffffff'); R_(cx+4,top+H2*.65,2,2,pal.eye); R_(cx-2,top+H2*.78,1,1,'#ffffff'); R_(cx+2,top+H2*.38,1,1,pal.acc); }
+  if(id==='dethking'){
+    const y0 = top + H2 * 0.42;
+    R_(cx-3, y0, 6, 4, pal.dark);
+    R_(cx-4, y0+4, 8, 2, pal.dark);
+    R_(cx-2, y0+6, 4, 3, pal.dark);
+    const glow = ((now/120)|0)%3;
+    R_(cx-1, y0+2, 2, 2, glow?(pal.acc2||'#ffd700'):'#ff5555');
+    const t = now / 400;
+    for(let k=0;k<3;k++){
+      const a = t + k * 2.09;
+      const sx = Math.round(cx + Math.cos(a) * 15);
+      const sy = Math.round(top + H2 * 0.7 + Math.sin(a) * 5);
+      R_(sx, sy, 2, 2, k%2 ? (pal.acc2||'#ffd700') : pal.acc);
+    }
+  }
 }
 
 // ---- slime animation pose ------------------------------------------------------------------
@@ -706,7 +768,7 @@ function drawSlime(f,idx,now,sk,opt){
   const eyeY=b.top+Math.round(b.H2*.34), sepc=Math.max(3,Math.round(C.hw*.42)), ex=b.cx+Math.round(2*face);
   const e1=ex-sepc+(face>0?0:-1), e2=ex+sepc-2+(face>0?0:-1);
   const blinking=((now/1000+rs.seed)%3.2)<.12;
-  const eyeC=pal.eye||OUT, STY=({ruby:'one',hatter:'bar',twin:'bar2',god:'bar3'})[C.id]||'std';
+  const eyeC=pal.eye||OUT, STY=({ruby:'one',hatter:'bar',twin:'bar2',god:'bar3',dethking:'deth'})[C.id]||'std';
   let kind=P.eyes==='n'&&blinking?'b':(P.eyes==='w'?'n':(P.eyes==='a'?'n':P.eyes)); if(kind==='k') kind='x';
   const eye=(x,y,kind)=>{
     if(kind==='x'){ R_(x-1,y,1,1,eyeC);R_(x+2,y,1,1,eyeC);R_(x,y+1,2,1,eyeC);R_(x-1,y+2,1,1,eyeC);R_(x+2,y+2,1,1,eyeC); }
@@ -731,13 +793,34 @@ function drawSlime(f,idx,now,sk,opt){
   } else if(STY==='bar'){ const c='#ffffff'; const xa=b.cx-5, xb=b.cx+3; bar(xa,eyeY,kind,c,null); bar(xb,eyeY,kind,c,null); if(P.eyes==='a'){ R_(xa-1,eyeY-3,5,1,'#ff6a5a'); R_(xb-1,eyeY-3,5,1,'#ff6a5a'); } }
   else if(STY==='bar2'){ const xa=b.cx-6, xb=b.cx+4; bar(xa,eyeY,kind,pal.eye,null); bar(xb,eyeY,kind,pal.eye2,null); if(P.eyes==='a'){ R_(xa-1,eyeY-3,5,1,pal.eye); R_(xb-1,eyeY-3,5,1,pal.eye2); } }
   else if(STY==='bar3'){ const xa=b.cx-7, xb=b.cx+5; bar(xa,eyeY,kind,'#fff',eyeC); bar(xb,eyeY,kind,'#fff',eyeC); if(P.eyes==='a'){ R_(xa-1,eyeY-3,5,1,eyeC); R_(xb-1,eyeY-3,5,1,eyeC); } }
+  else if(STY==='deth'){
+    const xa=b.cx-6, xb=b.cx+3;
+    const drawDethEye=(x)=>{
+      if(kind==='x'){ R_(x-1,eyeY,1,1,OUT);R_(x+2,eyeY,1,1,OUT);R_(x,eyeY+1,2,1,OUT);R_(x-1,eyeY+2,1,1,OUT);R_(x+2,eyeY+2,1,1,OUT); }
+      else if(kind==='h'||kind==='b'){ R_(x-1,eyeY+1,5,1,OUT); }
+      else {
+        R_(x-1,eyeY-1,5,5,OUT);
+        R_(x,eyeY,3,3,pal.eye||'#ffffff');
+        R_(x+(face>0?1:0),eyeY+1,2,2,'#000000');
+        if(P.eyes==='a'){ R_(x-2,eyeY-2,6,1,pal.acc); }
+      }
+    };
+    drawDethEye(xa); drawDethEye(xb);
+  }
   else {
     eye(e1,eyeY,kind); eye(e2,eyeY,kind);
     if(P.eyes==='a'){ R_(e1-1,eyeY-3,5,1,OUT); R_(e2-1,eyeY-3,5,1,OUT); R_(face>0?e1-1:e1+3,eyeY-4,1,1,OUT); R_(face>0?e2+3:e2-1,eyeY-4,1,1,OUT); }
   }
   // mouth (the hand-drawn slimes have none)
   const my=eyeY+Math.round(b.H2*.28)+2, mx=ex+(face>0?-1:-2);
-  if(STY==='std'){
+  if(STY==='deth'){
+    R_(mx-3,my,8,3,OUT);
+    R_(mx-2,my+1,6,2,pal.dark);
+    R_(mx-2,my,2,1,'#ffffff');
+    R_(mx+1,my,2,1,'#ffffff');
+    R_(mx-1,my+2,2,1,'#ffffff');
+  }
+  else if(STY==='std'){
     if(P.mouth==='o'){ R_(mx,my,4,3,OUT); R_(mx+1,my+1,2,1,'#e8556a'); }
     else if(P.mouth==='s'){ R_(mx-1,my+1,6,1,OUT); R_(mx-1,my,1,1,OUT); R_(mx+4,my,1,1,OUT); }
     else if(P.mouth==='h'){ R_(mx-1,my,6,3,OUT); R_(mx,my+1,4,1,'#e8556a'); }
@@ -838,6 +921,16 @@ function drawProj(G,now){
       else { const k=Math.max(0,Math.min(1,p.life/8)); ctx.globalAlpha=.45; R_(x-18,0,36,GY,'#ffe45a'); ctx.globalAlpha=.8; R_(x-12,0,24,GY,'#fff6a0'); ctx.globalAlpha=1; R_(x-7,0,14,GY,'#ffffff');
         R_(x-22,GY-4,44,4,'#ffffff'); R_(x-16,GY-8,32,3,'#ffe45a'); for(let q=0;q<5;q++){ R_(x-20+q*10,((now/8+q*47)%GY)|0,2,6,'#ffffff'); } } }
     else if(p.kind==='wave'){ const h=12+Math.round(Math.sin(now/60)*2); R_(x-12,y-h+8,24,h,OUT); R_(x-11,y-h+9,22,h-2,'#a39a8c'); R_(x-8,y-h+9,6,h-3,'#e0d8c8'); R_(x+4,y-h+13,5,5,'#5e564c'); for(let k=0;k<3;k++) R_(x-10+k*8,y-h+4+((now/50+k*3)%3|0),3,3,'#8a8174'); }
+    else if(p.kind==='scythe'){
+      const sz=13, angle=(now/26)*(f>0?1:-1);
+      ctx.save(); ctx.translate(x,y); ctx.rotate(angle);
+      R_(-sz,-2,sz*2,4,OUT); R_(-sz+1,-1,sz*2-2,2,'#ac3232');
+      R_(sz-3,-9,6,18,OUT); R_(sz-2,-8,4,16,'#c40a13'); R_(sz-1,-6,2,12,'#ffd700');
+      R_(-sz-3,-9,6,18,OUT); R_(-sz-2,-8,4,16,'#c40a13'); R_(-sz-1,-6,2,12,'#ffd700');
+      R_(-3,-3,6,6,OUT); R_(-2,-2,4,4,'#ffffff'); R_(-1,-1,2,2,'#000000');
+      ctx.restore();
+      if(G.frame%2===0) P_({x:x-f*rnd(4,10),y:y+rnd(-6,6),vx:-f*rnd(1,3),vy:rnd(-1.5,1.5),s:2,c:Math.random()<.5?'#c40a13':'#ffd700',life:12});
+    }
   }
 }
 
@@ -984,9 +1077,9 @@ function drawHUD(G,now,names,opts){
 const SAVE_KEY='slimebrawlers_v1';
 const SEVEN_DAYS = 7 * 24 * 3600 * 1000;
 const BAKED_SAVE = {
-  done: {"q_s_hatter1":1,"q_s_twin1":1,"q_gloop":1,"q_volt":1,"q_ember":1,"q_frost":1,"q_s_ruby1":1,"q_s_gloop1":1,"q_twin":1,"q_rocky":1,"q_void":1,"q_s_volt1":1,"q_s_god1":1,"q_god":1,"q_s_void1":1,"q_s_ember1":1,"q_s_frost1":1,"q_s_gloop2":1,"q_s_rocky1":1,"q_nova":1},
-  stats: {"wins":50,"played":74,"blocks":374,"specials":336,"perfects":15,"arcade":1,"sumoWins":4,"ringouts":9,"combo":32,"survival":5,"pixelWins":5,"aseSkinWins":2,"novaWinsQ":5,"novaWins":2},
-  skin: {"ruby":1,"hatter":1,"twin":1,"god":1,"gloop":2,"ember":1,"frost":1,"rocky":1,"volt":1,"void":1,"jack":0,"aseprite":0,"aesprite":0,"nova":1},
+  done: {"q_dethking":1,"q_s_hatter1":1,"q_s_twin1":1,"q_gloop":1,"q_volt":1,"q_ember":1,"q_frost":1,"q_s_ruby1":1,"q_s_gloop1":1,"q_twin":1,"q_rocky":1,"q_void":1,"q_s_volt1":1,"q_s_god1":1,"q_god":1,"q_s_void1":1,"q_s_ember1":1,"q_s_frost1":1,"q_s_gloop2":1,"q_s_rocky1":1,"q_nova":1},
+  stats: {"wins":50,"played":74,"blocks":374,"specials":336,"perfects":15,"arcade":1,"sumoWins":4,"ringouts":9,"combo":32,"survival":5,"pixelWins":5,"aseSkinWins":2,"novaWinsQ":5,"novaWins":2,"dethWins":2,"dethWinsQ":50},
+  skin: {"ruby":1,"hatter":1,"twin":1,"god":1,"gloop":2,"ember":1,"frost":1,"rocky":1,"volt":1,"void":1,"jack":0,"aseprite":0,"aesprite":0,"nova":1,"dethking":0},
   sound: 1, devAll: 0, pid: "blv6q15u3xbovku9ah5s", name: "YOUR NAME", nameAuto: 0, coins: 3, server: ""
 };
 let SAVE = JSON.parse(JSON.stringify(BAKED_SAVE));
@@ -1001,11 +1094,16 @@ try {
       SAVE.skin = Object.assign({}, BAKED_SAVE.skin, o.skin || {});
     }
   }
-  // Auto-verify Nova and other quest completions on load
+  // Auto-verify Nova and Deth King quest completions on load
   const nWins = Math.max(SAVE.stats.wins || 0, SAVE.stats.novaWinsQ || 0);
   if (nWins >= 5 || SAVE.skin.nova != null) {
     SAVE.done['q_nova'] = 1;
     if (SAVE.skin.nova == null) SAVE.skin.nova = 0;
+  }
+  const dWins = Math.max(SAVE.stats.wins || 0, SAVE.stats.dethWinsQ || 0);
+  if (dWins >= 50 || SAVE.skin.dethking != null) {
+    SAVE.done['q_dethking'] = 1;
+    if (SAVE.skin.dethking == null) SAVE.skin.dethking = 0;
   }
   localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE));
 } catch(e) {}
@@ -1014,6 +1112,8 @@ function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE)); }catc
 // ---- quests: edit this list to add your own -------------------------------------------
 // stat: which counter it watches   goal: value needed   reward: {slime:'id'} or {skin:['id',skinIndex]}
 const QUESTS=[
+  {id:'q_dethking', name:'REAPER CORONATION', desc:'THE KING AWAKENS: WIN 50 MATCHES', stat:'wins', goal:50, reward:{slime:'dethking'}},
+  {id:'q_s_dethking1', name:'LICH ASCENDANCY', desc:'WIN 2 MATCHES AS DETH KING', stat:'dethWins', goal:2, reward:{skin:['dethking',1]}},
   {id:'q_nova',   name:'STARLIGHT VOYAGE', desc:'WIN 5 MATCHES',                 stat:'wins', goal:5, reward:{slime:'nova'}},
   {id:'q_s_nova1',name:'SOLAR FLARE',      desc:'WIN 2 MATCHES AS NOVA',         stat:'novaWins',  goal:2, reward:{skin:['nova',1]}},
   {id:'q_aseprite',   name:'PIXEL FORGER', desc:'WIN 5 MATCHES',                 stat:'pixelWins', goal:5,  reward:{slime:'aseprite'}},
@@ -1056,6 +1156,13 @@ function slimeUnlocked(ci){
   if(SAVE.devAll) return true;
   const id=CH[ci].id;
   if(id==='ruby'||id==='hatter') return true;
+  if(id==='dethking'){
+    const dWins = Math.max(SAVE.stats.wins||0, SAVE.stats.dethWinsQ||0);
+    if(SAVE.done['q_dethking'] || dWins >= 50 || (SAVE.skin && SAVE.skin.dethking != null)){
+      if(!SAVE.done['q_dethking']){ SAVE.done['q_dethking'] = 1; save(); }
+      return true;
+    }
+  }
   if(id==='nova'){
     const nWins = Math.max(SAVE.stats.wins||0, SAVE.stats.novaWinsQ||0);
     if(SAVE.done['q_nova'] || nWins >= 5 || (SAVE.skin && SAVE.skin.nova != null)){
@@ -1266,7 +1373,7 @@ function buildLadder(ci){
   for(let i=others.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; const t=others[i]; others[i]=others[j]; others[j]=t; }
   const L=[]; const lv=[0,0,1,1,2];
   others.slice(0,5).forEach((o,i)=>L.push({ci:o,sk:0,lvl:lv[i],stage:i%3,rules:{}}));
-  const boss=ci===CHI.god?CHI.void:CHI.god; L.push({ci:boss,sk:1%(SKINS[CH[boss].id].length),lvl:2,stage:2,rules:{hpMax:[100,150],atk:[1,1.15]},boss:1});
+  const boss=ci===CHI.dethking?(ci===CHI.god?CHI.void:CHI.god):CHI.dethking; L.push({ci:boss,sk:0,lvl:2,stage:2,rules:{hpMax:[100,160],atk:[1,1.2]},boss:1});
   return L; }
 function startArcade(){ run=newRun('arcade'); run.ladder=buildLadder(sel[0].ci); run.idx=0; run.cont=2; sel[1].ci=run.ladder[0].ci; ladderT=0; setScene('ladder'); }
 function startSurvival(){ run=newRun('survival'); run.wave=1; run.hp=100; run.best=SAVE.stats.survival||0; nextWave(true); }
@@ -1280,7 +1387,7 @@ function finishMatch(){
   const localSlots=r.kind==='online'?[net.slot]:[0,1].filter(i=>human[i]);
   const trainingMode=mode&&mode.id==='training';
   if(!trainingMode){
-    for(const i of localSlots){ const f=G.f[i]; bumpStat('played',1); bumpStat('blocks',f.blocks); bumpStat('specials',f.spUsed); bumpStat('perfects',f.perfects); bumpStat('combo',f.maxCombo); if(w===i){ bumpStat('wins',1); bumpStat('pixelWins',1); bumpStat('novaWinsQ',1); if(f.ch===CHI.nova) bumpStat('novaWins',1); if(f.ch===CHI.aseprite||f.ch===CHI.aesprite) bumpStat('aseSkinWins',1); if(G.rules.sumo) bumpStat('sumoWins',1); } }
+    for(const i of localSlots){ const f=G.f[i]; bumpStat('played',1); bumpStat('blocks',f.blocks); bumpStat('specials',f.spUsed); bumpStat('perfects',f.perfects); bumpStat('combo',f.maxCombo); if(w===i){ bumpStat('wins',1); bumpStat('pixelWins',1); bumpStat('novaWinsQ',1); bumpStat('dethWinsQ',1); if(f.ch===CHI.nova) bumpStat('novaWins',1); if(f.ch===CHI.dethking) bumpStat('dethWins',1); if(f.ch===CHI.aseprite||f.ch===CHI.aesprite) bumpStat('aseSkinWins',1); if(G.rules.sumo) bumpStat('sumoWins',1); } }
     if(r.ringouts) bumpStat('ringouts',r.ringouts);
   }
   const humanWon=localSlots.includes(w);
@@ -1331,7 +1438,7 @@ function titleRender(){
   if(((NOW/500)|0)%2) txt('PRESS START',W/2,200,'#ffffff',2,1,OUT);
   txt('ENTER / SPACE / J / TAP',W/2,222,'#9ad8ff',1,1,OUT);
   hot(0,0,W,H,()=>{ SFX.ok(); setScene('menu'); });
-  txt('V1.6 (NOVA FIX & COSMIC READY)',W-6,H-10,'#ffd24a',1,2);
+  txt('V1.7 (DETH KING RISES)',W-6,H-10,'#ffd24a',1,2);
 }
 
 // ---- scene: menu ---------------------------------------------------------------------------
@@ -1381,12 +1488,12 @@ function selTile(ci){
     return {x: 12 + ci * gap_x, y: 22, w: tw, h: th};
   } else if(ci < 12){ // Layer 2: Challenger / Tier 2 (6 slimes)
     return {x: 12 + (ci - 6) * gap_x, y: 64, w: tw, h: th};
-  } else { // Layer 3: Cosmic / Secret Layer (NOVA)
-    const extra_idx = ci - 12; // 0 for nova
+  } else { // Layer 3: Cosmic & Mythic Layer (NOVA & DETH KING)
+    const extra_idx = ci - 12; // 0 for nova, 1 for dethking
     const total_extra = Math.max(1, CH.length - 12);
-    const extra_w = 88;
-    const start_x = Math.round((W - (total_extra * (extra_w + 8) - 8)) / 2);
-    return {x: start_x + extra_idx * (extra_w + 8), y: 106, w: extra_w, h: th};
+    const extra_w = 92;
+    const start_x = Math.round((W - (total_extra * (extra_w + 12) - 12)) / 2);
+    return {x: start_x + extra_idx * (extra_w + 12), y: 106, w: extra_w, h: th};
   }
 }
 function selActive(){ const two=mode.id==='versus'&&cfg.opp===0; if(run&&run.kind==='online') return [net.slot]; return two?[0,1]:[0]; }
@@ -1401,20 +1508,20 @@ function selectUpdate(){
       if(m&IL){
         if(c < 6) c = (c - 1 + 6) % 6;
         else if(c < 12) c = 6 + (c - 6 - 1 + 6) % 6;
-        else if(CH.length > 13) c = 12 + (c - 12 - 1 + (CH.length - 12)) % (CH.length - 12);
+        else if(CH.length > 12) c = 12 + (c - 12 - 1 + (CH.length - 12)) % (CH.length - 12);
       }
       if(m&IR){
         if(c < 6) c = (c + 1) % 6;
         else if(c < 12) c = 6 + (c - 6 + 1) % 6;
-        else if(CH.length > 13) c = 12 + (c - 12 + 1) % (CH.length - 12);
+        else if(CH.length > 12) c = 12 + (c - 12 + 1) % (CH.length - 12);
       }
       if(m&IU){
-        if(c >= 12) c = 8; // From layer 3 (Nova), jump to center of layer 2
+        if(c >= 12) c = (c === 12) ? 8 : 9; // Nova -> God, Deth King -> Jack
         else if(c >= 6) c = c - 6; // From layer 2, jump to layer 1
       }
       if(m&ID){
         if(c < 6) c = c + 6; // From layer 1 to layer 2
-        else if(c < 12) c = Math.min(CH.length - 1, 12); // From layer 2 down to layer 3 (Nova)
+        else if(c < 12) c = (c <= 8) ? 12 : Math.min(CH.length - 1, 13); // From layer 2 down to layer 3
       }
       if(m&(IL|IR|IU|ID)){ sl.cur=Math.min(CH.length-1,c); SFX.ui(); sl.ci=sl.cur; sl.sk=slimeUnlocked(sl.cur)?(SAVE.skin[CH[sl.cur].id]|0):0; if(!skinUnlocked(sl.cur,sl.sk)) sl.sk=0; }
       if(m&IB&&slimeUnlocked(sl.cur)) cycleSkin(s);
@@ -1439,21 +1546,25 @@ function selectRender(){
   // Layer labels / dividers
   txt('TIER 1', 12, 14, '#6a64a8', 1, 0);
   txt('TIER 2', 12, 56, '#6a64a8', 1, 0);
-  txt('COSMIC LAYER', W/2, 98, '#ffd24a', 1, 1, OUT);
+  txt('COSMIC & MYTHIC LAYER', W/2, 98, '#ffd24a', 1, 1, OUT);
 
   for(let ci=0;ci<CH.length;ci++){ const t=selTile(ci), un=slimeUnlocked(ci);
-    const isNova = ci >= 12;
-    const borderCol = isNova ? '#a884f0' : '#4a4380';
-    const bgCol = un ? (isNova ? '#2c1e4e' : '#201a46') : '#120f28';
+    const isNova = ci === 12;
+    const isDeth = ci === CHI.dethking;
+    const borderCol = isDeth ? '#ff4444' : (isNova ? '#a884f0' : '#4a4380');
+    const bgCol = un ? (isDeth ? '#320b10' : (isNova ? '#2c1e4e' : '#201a46')) : '#120f28';
     box(t.x,t.y,t.w,t.h,bgCol,OUT,borderCol);
-    if(isNova && un){
-      // subtle cosmic shimmer border
-      const pulse = ((NOW/300)%1);
-      R_(t.x,t.y,t.w,1,'#c89bff');
+    if(un){
+      if(isNova){
+        R_(t.x,t.y,t.w,1,'#c89bff');
+      } else if(isDeth){
+        R_(t.x,t.y,t.w,1,'#ff4444');
+        if(((NOW/200)|0)%2===0) R_(t.x,t.y+t.h-1,t.w,1,'#ffd700');
+      }
     }
     const hov=act.filter(s=>sel[s].cur===ci);
     blobHead(ci,0,t.x+t.w/2,t.y+27,un?null:undefined,!un?1:0);
-    txt(un?CH[ci].name:'???',t.x+t.w/2,t.y+32,un?(isNova?'#c89bff':'#fff'):'#6a64a8',1,1);
+    txt(un?CH[ci].name:'???',t.x+t.w/2,t.y+32,un?(isDeth?'#ff7a7a':(isNova?'#c89bff':'#fff')):'#6a64a8',1,1);
     if(!un){
       if(ci===CHI.jack) txt('7-DAY',t.x+t.w/2,t.y+5,'#ffd24a',1,1,OUT);
       else txt('LOCKED',t.x+t.w/2,t.y+5,'#ff7a7a',1,1);
@@ -1473,7 +1584,7 @@ function selectRender(){
   const n=act.length, pw=n===2?228:300; act.forEach((s,k)=>{ const sl=sel[s], ci=sl.cur, C=CH[ci], un=slimeUnlocked(ci), px=n===2?(k?240:12):Math.round(W/2-pw/2), py=150, tx=px+72, mc=Math.floor((pw-80)/6);
     panel(px,py,pw,92,null); const col=s===0?'#ff5a5a':'#5aa8ff'; txt('P'+(s+1),px+6,py+6,col,1,0,OUT);
     const wrap=(str,max)=>{ const w=str.split(' '),L=[]; let c=''; for(const x of w){ if((c+' '+x).trim().length>max){ L.push(c); c=x; } else c=(c+' '+x).trim(); } if(c) L.push(c); return L; };
-    if(un){ drawPreview(ci,sl.sk,px+36,py+58,(NOW/16)|0); txt(C.name+' - '+C.title+(ci===CHI.jack?' ('+jackTimeStr()+' LEFT)':''),tx,py+6,ci===CHI.jack?'#ffd24a':(ci>=12?'#c89bff':'#fff'),1,0,OUT);
+    if(un){ drawPreview(ci,sl.sk,px+36,py+58,(NOW/16)|0); txt(C.name+' - '+C.title+(ci===CHI.jack?' ('+jackTimeStr()+' LEFT)':''),tx,py+6,ci===CHI.jack?'#ffd24a':(ci===CHI.dethking?'#ff5555':(ci===12?'#c89bff':'#fff')),1,0,OUT);
       box(px+pw-68, py+4, 62, 18, sl.ready?'#1d3a2a':'#2d2762', OUT, sl.ready?'#5fd35f':'#ffd24a');
       txt(sl.ready?'READY!':'PICK [F]', px+pw-37, py+9, sl.ready?'#5fd35f':'#ffd24a', 1, 1, OUT);
       hot(px+pw-70, py+2, 66, 22, ()=>{ selectConfirm(s); });
@@ -1483,7 +1594,7 @@ function selectRender(){
       const sk=SKINS[C.id], skn=sk[sl.sk]?sk[sl.sk].n:''; txt(skn,px+36,py+68,'#fff',1,1,OUT); txt(sk.length>1?'< SKIN >':'',px+36,py+78,'#6a64a8',1,1); hot(px+2,py+62,70,22,()=>cycleSkin(s));
     } else {
       drawPreview(ci,0,px+36,py+66,0,1); const q=questFor(ci);
-      const isDone = q && ((SAVE.stats[q.stat]||0)>=q.goal || (q.id==='q_nova'&&((SAVE.stats.wins||0)>=5||(SAVE.stats.novaWinsQ||0)>=5)));
+      const isDone = q && ((SAVE.stats[q.stat]||0)>=q.goal || (q.id==='q_nova'&&((SAVE.stats.wins||0)>=5||(SAVE.stats.novaWinsQ||0)>=5)) || (q.id==='q_dethking'&&((SAVE.stats.wins||0)>=50||(SAVE.stats.dethWinsQ||0)>=50)));
       if(isDone){
         SAVE.done[q.id]=1; save();
         box(px+pw-72, py+4, 66, 18, '#1d3a2a', OUT, '#5fd35f');
@@ -1494,7 +1605,7 @@ function selectRender(){
       if(q){
         txt('QUEST: '+q.name,tx,py+22,'#ffd24a',1,0);
         wrap(q.desc,mc).forEach((l,i)=>txt(l,tx,py+34+i*10,'#fff',1,0));
-        const curStat = (q.id==='q_nova'?Math.max(SAVE.stats.wins||0,SAVE.stats.novaWinsQ||0):(SAVE.stats[q.stat]||0));
+        const curStat = (q.id==='q_dethking'?Math.max(SAVE.stats.wins||0,SAVE.stats.dethWinsQ||0):(q.id==='q_nova'?Math.max(SAVE.stats.wins||0,SAVE.stats.novaWinsQ||0):(SAVE.stats[q.stat]||0)));
         txt('PROGRESS '+Math.min(q.goal,curStat)+'/'+q.goal,tx,py+58,isDone?'#5fd35f':'#9ad8ff',1,0);
       }
     }
@@ -1612,6 +1723,7 @@ function launchQuest(q){
   if(q.stat==='sumoWins'||q.stat==='ringouts') mId = 'sumo';
   let p1 = sel[0].ci;
   if(q.stat==='novaWins'||q.stat==='novaWinsQ') p1 = CHI.nova;
+  else if(q.stat==='dethWins'||q.stat==='dethWinsQ') p1 = CHI.dethking;
   else if(q.stat==='aseSkinWins'||q.stat==='pixelWins') p1 = CHI.aseprite;
   else if(q.reward && q.reward.skin) p1 = CHI[q.reward.skin[0]] != null ? CHI[q.reward.skin[0]] : p1;
   else if(q.reward && q.reward.slime) p1 = CHI[q.reward.slime] != null ? CHI[q.reward.slime] : p1;

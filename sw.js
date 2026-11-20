@@ -1,4 +1,4 @@
-const CACHE_NAME = 'slime-brawlers-v6';
+const CACHE_NAME = 'slime-brawlers-v7';
 const ASSETS = [
   './',
   './index.html',
