@@ -1975,6 +1975,10 @@ function questsRender(){
 
   // Title
   txt('QUESTS & CHALLENGES', 86, 12, '#ffd24a', 2, 0, OUT);
+  // Dev Mode toggle button
+  box(256, 8, 82, 22, SAVE.devAll ? '#3a1d1d' : '#1d273a', OUT, SAVE.devAll ? '#ff5a5a' : '#6a64a8');
+  txt(SAVE.devAll ? 'DEV: ON [U]' : 'DEV: OFF [U]', 297, 14, SAVE.devAll ? '#ff5a5a' : '#9ad8ff', 1, 1, OUT);
+  hot(254, 6, 86, 26, ()=>{ SAVE.devAll = SAVE.devAll ? 0 : 1; save(); SFX.ok(); });
 
   // Status & Top-Right Back Button
   const done=Object.keys(SAVE.done).length;
