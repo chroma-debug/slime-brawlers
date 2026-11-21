@@ -94,10 +94,33 @@ const RING=[70,410];
 
 // ---- moves ---------------------------------------------------------
 // box = hit rectangle relative to the slime's feet, facing right: [x0,y0,x1,y1] (y negative = up)
+// Scythe visual asset from sythe.aseprite
+const SCYTHE_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bNHAAABc0lEQVR4nO3YvWrDMBSG4aPiqWuHXEH3jKbJlAvvFJeM3Tt0zpA1dCicImO5xk1xfrD0Bd4Hgg2WLflDP1bMAAAAAAAAAAAAAAAAgFt598sumC7vTzZ1ewyvu/aQsxGViYayfXwyBZVqKKv6uT9vdh+2WpZpajXjS4eJ65OhKJgjII8vvT4exiFdHcpvmb3lFuYKKFofD3ZrT4llY5nuWdkXlbkq9PEke+nwGZYvsXr1dc/4bI8hpRe9ZE4Z3lOq5yTzLw1fn9a8f191a+lwclTubS9aVmeFpDKshnI0wKdCGs9PCj0nydUIPxXSP8HkbNekXJ+nIX4XuS3+XEiTt1KvGXrIWFcIb/uTWwbVcEpxf1m4b+o47Ir9jXGuIjvApp2HNPZaqrybuOV7UM45aKifb7otiWxIpQJKK5upKxmQ3UMvKh1QSL1INaTSAcmHpBCQdEgqAcmGpBSQZEhqAcmFpBjQ3XwjKSg+xAAAAAAAMDU/VYGdGiLonG8AAAAASUVORK5CYII=';
+const scytheImg = new Image();
+scytheImg.src = SCYTHE_B64;
+
+const WEAPONS = {
+  ruby: { id:'ruby', name:'RUBY BROADSWORD', skillName:'METEOR PLUNGE', desc:'Crystalline broadsword. Grants +25% ability damage and METEOR PLUNGE.', type:'sword' },
+  hatter: { id:'hatter', name:"MAGICIAN'S CANE", skillName:'CANE FLURRY', desc:'Mahogany trick cane. Grants +25% ability damage and CANE FLURRY sparks.', type:'cane' },
+  twin: { id:'twin', name:'YIN-YANG SCEPTERS', skillName:'ECLIPSE CROSS', desc:'Dual cosmic rods. Grants +25% ability damage and ECLIPSE CROSS waves.', type:'dual' },
+  god: { id:'god', name:'SUN HALBERD', skillName:'DIVINE WRATH', desc:'Radiant solar polearm. Grants +25% ability damage and DIVINE WRATH.', type:'spear' },
+  gloop: { id:'gloop', name:'SPORE FLAIL', skillName:'BIO-SLAM', desc:'Spiked toxic flail. Grants +25% ability damage and corrosive BIO-SLAM.', type:'mace' },
+  ember: { id:'ember', name:'BLAZING KATANA', skillName:'FIRE CLEAVE', desc:'Magma-forged katana. Grants +25% ability damage and blazing FIRE CLEAVE.', type:'sword' },
+  frost: { id:'frost', name:'GLACIAL RAPIER', skillName:'ICE DRILL', desc:'Sub-zero cryo-rapier. Grants +25% ability damage and freezing ICE DRILL.', type:'rapier' },
+  rocky: { id:'rocky', name:'GRANITE HAMMER', skillName:'TITAN SMASH', desc:'Colossal bedrock hammer. Grants +25% ability damage and TITAN SMASH.', type:'hammer' },
+  volt: { id:'volt', name:'LIGHTNING ROD', skillName:'THUNDER BURST', desc:'High-voltage rod. Grants +25% ability damage and surging THUNDER BURST.', type:'rod' },
+  jack: { id:'jack', name:'LANTERN SICKLE', skillName:'SOUL SICKLE', desc:'Cursed harvest sickle. Grants +25% ability damage and explosive SOUL SICKLE.', type:'sickle' },
+  void: { id:'void', name:'ECLIPSE CHAKRAM', skillName:'EVENT SURGE', desc:'Void razor rings. Grants +25% ability damage and life-draining EVENT SURGE.', type:'chakram' },
+  aseprite: { id:'aseprite', name:'PIXEL BLADE', skillName:'PALETTE CHOP', desc:'16-bit retro stylus blade. Grants +25% ability damage and PALETTE CHOP.', type:'pixel' },
+  nova: { id:'nova', name:'COSMIC GLAIVE', skillName:'GRAVITY RIFT', desc:'Starforged polearm. Grants +25% ability damage and crushing GRAVITY RIFT.', type:'glaive' },
+  dethking: { id:'dethking', name:'HARVEST SCYTHE', skillName:'SOUL REAP CLEAVE', desc:'The dread reaper scythe. Grants +25% ability damage, 25% drain, and SOUL REAP CLEAVE.', type:'scythe' }
+};
+
 const BASE={
   lt:{su:4,ac:3,rc:7, dmg:5, box:[6,-26,32,-10], kb:[1.8,0],   hs:15,bs:9, hstop:3,spark:0,name:'BUMP'},
   hv:{su:9,ac:4,rc:15,dmg:11,box:[4,-32,46,-6],  kb:[3.6,-1.6],hs:21,bs:13,hstop:6,spark:1,name:'SPLAT'},
   aa:{su:3,ac:10,rc:0,dmg:7, box:[-4,-22,26,6],  kb:[2.4,-1],  hs:17,bs:10,hstop:4,spark:0,air:1,name:'DIVE'},
+  da:{su:6,ac:5,rc:13,dmg:12,box:[6,-26,44,-2],  kb:[3.2,-2.5],hs:20,bs:12,hstop:5,spark:1,name:'DOWN STRIKE'},
 };
 function mk(b,o){ return Object.assign({},b,o); }
 function spCost(ci){ return CH[ci].spCost||SPECIAL_COST; }
@@ -107,18 +130,18 @@ const CH=[
  { id:'ruby', atkMul:1.19, kbMul:1.44, name:'RUBY', title:'THE STARTER', shape:'cube', walk:1.9, back:1.6, jump:-7.7, hw:14, hh:27, stats:[4,3,3], rage:1.3,
    passive:'RAGE', passiveDesc:'+20% damage below 30% health.', spName:'EYE BEAM', spDesc:'Instant long-range laser from its one eye.',
    pal:{body:'#d23a3a',dark:'#8c1f2a',light:'#ff9a8a',eye:'#1a0a10',acc:'#ffd24a'},
-   mv:{ lt:mk(BASE.lt,{dmg:6}), hv:mk(BASE.hv,{dmg:12}), aa:mk(BASE.aa,{dmg:8}),
+   mv:{ lt:mk(BASE.lt,{dmg:6}), hv:mk(BASE.hv,{dmg:12}), aa:mk(BASE.aa,{dmg:8}), da:mk(BASE.da,{su:6,ac:6,rc:13,dmg:13,box:[6,-26,46,-2],kb:[3.5,-3],hs:22,bs:14,hstop:6,spark:2,launch:1,burn:1,name:'SOUL SICKLE',spawn:[7,{kind:'pumpkin',dx:18,dy:-12,vx:4.5,vy:-1.5,g:0.1,w:14,h:14,dmg:11,life:80,kb:[2.8,-3],hs:18,bs:12,launch:1,burn:1}]}), da:mk(BASE.da,{su:6,ac:6,rc:12,dmg:15,box:[6,-28,48,2],kb:[3.8,-3],hs:22,bs:14,hstop:6,spark:2,launch:1,name:'METEOR PLUNGE'}),
         sp:{su:11,ac:5,rc:18,dmg:16,box:[8,-24,250,-14],kb:[3,-3],hs:22,bs:14,hstop:8,spark:2,launch:1,beam:1,name:'EYE BEAM'} } },
  { id:'hatter', atkMul:1.02, kbMul:0.6, name:'HATTER', title:'MAGIC SLIME', shape:'cube', walk:2.0, back:1.7, jump:-7.8, hw:12, hh:29, stats:[3,4,3], spCost:40,
    passive:'TRICKSTER', passiveDesc:'Ability costs only 40 meter.', spName:'HAT TRICK', spDesc:'Boomerang hat that hits on the way out and back.',
    pal:{body:'#26202f',dark:'#120e1a',light:'#5a4a78',eye:'#ffffff',acc:'#ffd24a',hat:'#c4282e',hatDark:'#7a1218',hatLight:'#ff6a5a'},
-   mv:{ lt:mk(BASE.lt,{}), hv:mk(BASE.hv,{}), aa:mk(BASE.aa,{}),
+   mv:{ lt:mk(BASE.lt,{}), hv:mk(BASE.hv,{}), aa:mk(BASE.aa,{}), da:mk(BASE.da,{su:7,ac:6,rc:14,dmg:12,box:[4,-22,46,2],kb:[3,-2],hs:20,bs:14,hstop:5,spark:1,name:'BIO-SLAM',spawn:[8,{kind:'glob',dx:26,dy:-10,vx:3.0,w:16,h:14,dmg:8,life:100,kb:[1.2,-1],hs:14,bs:10,slow:100}]}), da:mk(BASE.da,{su:5,ac:4,rc:12,dmg:10,box:[8,-24,40,-2],kb:[2.4,-1.5],hs:18,bs:12,hstop:4,spark:1,name:'CANE FLURRY',spawn:[6,{kind:'ball',dx:20,dy:-14,vx:6.5,w:12,h:12,dmg:8,life:60,kb:[2,-1],hs:14,bs:8,launch:0,spark:1}]}),
         sp:{su:9,ac:2,rc:15,dmg:0,box:[0,0,0,0],kb:[0,0],hs:0,bs:0,hstop:0,spark:2,noBox:1,
             spawn:[9,{kind:'hat',dx:16,dy:-24,vx:5.6,w:18,h:14,dmg:7,life:70,ret:30,kb:[1.8,-1.2],hs:16,bs:10,launch:0}],name:'HAT TRICK'} } },
  { id:'twin', atkMul:1.14, kbMul:0.72, name:'TWIN', title:'LIGHT AND DARK', shape:'arch', walk:1.9, back:1.6, jump:-7.7, hw:13, hh:31, stats:[3,3,4], meterMul:1.25, gr:1.5,
    passive:'BALANCE', passiveDesc:'Faster meter and guard recovery.', spName:'DUAL ORBS', spDesc:'Fires a fast white orb and a slow black orb.',
    pal:{body:'#f2f2ff',dark:'#b4b4d4',light:'#ffffff',body2:'#1a1822',dark2:'#07060c',light2:'#55506e',eye:'#1a1822',eye2:'#ffffff',acc:'#ffd24a'},
-   mv:{ lt:mk(BASE.lt,{dmg:6}), hv:mk(BASE.hv,{dmg:13}), aa:mk(BASE.aa,{}),
+   mv:{ lt:mk(BASE.lt,{dmg:6}), hv:mk(BASE.hv,{dmg:13}), aa:mk(BASE.aa,{}), da:mk(BASE.da,{su:6,ac:5,rc:13,dmg:13,box:[6,-26,44,-4],kb:[3.2,-2.2],hs:20,bs:13,hstop:5,spark:2,name:'ECLIPSE CROSS',spawns:[[6,{kind:'orbw',dx:16,dy:-12,vx:5.5,w:12,h:12,dmg:7,life:70,kb:[2,-1.5],hs:16,bs:10,launch:0}],[10,{kind:'orbb',dx:16,dy:-26,vx:4.2,w:14,h:14,dmg:8,life:80,kb:[2.5,-2],hs:18,bs:11,launch:0}]]}),
         sp:{su:8,ac:2,rc:18,dmg:0,box:[0,0,0,0],kb:[0,0],hs:0,bs:0,hstop:0,spark:2,noBox:1,
             spawn:[8,{kind:'orbw',dx:18,dy:-14,vx:6.4,w:12,h:12,dmg:6,life:90,kb:[2.6,-1.4],hs:17,bs:11,launch:0}],
             spawns:[[8,{kind:'orbw',dx:18,dy:-14,vx:6.4,w:12,h:12,dmg:7,life:90,kb:[2.6,-1.4],hs:17,bs:11,launch:0}],
@@ -126,7 +149,7 @@ const CH=[
  { id:'god', name:'GOD SLIME', title:'THE DIVINE', shape:'cube', rad:5, walk:2.3, back:1.9, jump:-7.8, hw:14, hh:28, stats:[5,4,5], dmgMul:.8, atkMul:1.15, kbMul:1.7, regen:150,
    passive:'DIVINE', passiveDesc:'Takes 20% less damage, hits 15% harder, and slowly heals.', spName:'DIVINE SMITE', spDesc:'Calls a pillar of light down on the foe.',
    pal:{body:'#ffe83a',dark:'#e0a810',light:'#fffbb0',eye:'#2a2208',acc:'#ffffff'},
-   mv:{ lt:mk(BASE.lt,{su:5,rc:8,dmg:6}), hv:mk(BASE.hv,{su:11,rc:17,dmg:13}), aa:mk(BASE.aa,{}),
+   mv:{ lt:mk(BASE.lt,{su:5,rc:8,dmg:6}), hv:mk(BASE.hv,{su:11,rc:17,dmg:13}), aa:mk(BASE.aa,{}), da:mk(BASE.da,{su:7,ac:5,rc:16,dmg:14,box:[8,-28,54,-6],kb:[3.6,-4],hs:24,bs:16,hstop:7,spark:2,launch:1,name:'DIVINE WRATH',heal:8,spawn:[8,{kind:'pillar',atFoe:0,dx:36,dy:-80,vx:0,w:22,h:160,delay:10,dmg:10,life:25,kb:[2,-5],hs:20,bs:12,launch:1}]}),
         sp:{su:12,ac:2,rc:24,dmg:0,box:[0,0,0,0],kb:[0,0],hs:0,bs:0,hstop:0,spark:2,noBox:1,
             spawn:[12,{kind:'pillar',atFoe:1,dx:0,dy:-100,vx:0,w:28,h:200,delay:26,dmg:13,life:33,kb:[2,-6.6],hs:26,bs:16,launch:1}],name:'DIVINE SMITE'} } },
  { id:'gloop', atkMul:1.5, kbMul:0.71, name:'GLOOP', title:'THE STARTER', walk:1.8, back:1.5, jump:-7.6, hw:13, hh:28, dj:1, stats:[3,3,3],
@@ -138,25 +161,25 @@ const CH=[
  { id:'ember', atkMul:0.96, kbMul:1.72, name:'EMBER', title:'FIRE SLIME', walk:2.1, back:1.7, jump:-7.8, hw:13, hh:27, stats:[4,4,2], burn:1,
    passive:'SCORCH', passiveDesc:'Hits set the foe on fire.', spName:'FIRE DASH', spDesc:'Blazing charge, invincible while dashing.',
    pal:{body:'#ff6a3a',dark:'#c22f1a',light:'#ffd08a',eye:'#2a0c0c',acc:'#ffe45a'},
-   mv:{ lt:mk(BASE.lt,{}), hv:mk(BASE.hv,{dmg:12}), aa:mk(BASE.aa,{}),
+   mv:{ lt:mk(BASE.lt,{}), hv:mk(BASE.hv,{dmg:12}), aa:mk(BASE.aa,{}), da:mk(BASE.da,{su:6,ac:6,rc:14,dmg:14,box:[6,-30,46,0],kb:[4,-3.8],hs:22,bs:14,hstop:6,spark:2,launch:1,burn:1,name:'FIRE CLEAVE',mx:[5,14,6]}),
         sp:{su:6,ac:11,rc:20,dmg:10,box:[-2,-28,38,-2],kb:[4.4,-3],hs:22,bs:14,hstop:8,spark:2,launch:1,
             mx:[6,17,11],inv:[3,17],pass:1,name:'FIRE DASH'} } },
  { id:'frost', atkMul:1.36, kbMul:1.31, name:'FROST', title:'ICE SLIME', walk:1.8, back:1.6, jump:-7.5, hw:13, hh:28, stats:[2,3,4], gr:2,
    passive:'CHILL', passiveDesc:'Guard gauge recovers twice as fast.', spName:'ICE SHARD', spDesc:'Piercing shard that freezes on hit.',
    pal:{body:'#6cc8ff',dark:'#2f7fd0',light:'#e6fbff',eye:'#0c1c3a',acc:'#ffffff'},
-   mv:{ lt:mk(BASE.lt,{dmg:6}), hv:mk(BASE.hv,{dmg:12}), aa:mk(BASE.aa,{}),
+   mv:{ lt:mk(BASE.lt,{dmg:6}), hv:mk(BASE.hv,{dmg:12}), aa:mk(BASE.aa,{}), da:mk(BASE.da,{su:5,ac:6,rc:12,dmg:12,box:[8,-24,44,-4],kb:[2,-1.5],hs:18,bs:12,hstop:5,spark:2,stun:35,name:'ICE DRILL',mx:[4,12,7]}),
         sp:{su:9,ac:2,rc:18,dmg:0,box:[0,0,0,0],kb:[0,0],hs:0,bs:0,hstop:0,spark:2,noBox:1,
             spawn:[9,{kind:'shard',dx:22,dy:-16,vx:6.6,w:18,h:10,dmg:10,life:100,kb:[1.2,-1],hs:0,bs:12,launch:0,stun:40}],name:'ICE SHARD'} } },
  { id:'rocky', atkMul:1.05, kbMul:2.0, name:'ROCKY', title:'STONE SLIME', walk:1.3, back:1.0, jump:-6.8, hw:17, hh:32, stats:[5,1,3], dmgMul:.85,
    passive:'HARDENED', passiveDesc:'Takes 15% less damage.', spName:'QUAKE SLAM', spDesc:'Pound the ground, sending a shockwave.',
    pal:{body:'#a39a8c',dark:'#5e564c',light:'#e0d8c8',eye:'#1a1612',acc:'#ffcf5a'},
-   mv:{ lt:mk(BASE.lt,{su:6,rc:9,dmg:7,box:[8,-28,38,-8],hs:17}), hv:mk(BASE.hv,{su:12,rc:19,dmg:15,box:[6,-36,52,-4],kb:[4.4,-2],hs:24}), aa:mk(BASE.aa,{su:4,dmg:9,box:[-6,-26,32,6]}),
+   mv:{ lt:mk(BASE.lt,{su:6,rc:9,dmg:7,box:[8,-28,38,-8],hs:17}), hv:mk(BASE.hv,{su:12,rc:19,dmg:15,box:[6,-36,52,-4],kb:[4.4,-2],hs:24}), aa:mk(BASE.aa,{su:4,dmg:9,box:[-6,-26,32,6]}), da:mk(BASE.da,{su:9,ac:6,rc:17,dmg:18,box:[4,-34,56,4],kb:[5,-6],hs:28,bs:20,hstop:8,spark:2,launch:1,name:'TITAN SMASH',jump:[5,2.5,-4]}),
         sp:{su:15,ac:4,rc:26,dmg:14,box:[2,-20,50,0],kb:[3.2,-6.2],hs:26,bs:18,hstop:10,spark:2,launch:1,
             spawn:[15,{kind:'wave',dx:34,dy:-8,vx:4.4,w:22,h:14,dmg:10,life:70,kb:[3,-5.4],hs:22,bs:14,launch:1}],name:'QUAKE SLAM'} } },
  { id:'volt', atkMul:1.14, kbMul:0.6, name:'VOLT', title:'STORM SLIME', walk:2.5, back:2.1, jump:-8.2, hw:11, hh:25, stats:[3,5,3], meterMul:1.5,
    passive:'STATIC', passiveDesc:'Builds super meter 50% faster.', spName:'THUNDER BALL', spDesc:'Lightning-fast energy orb.',
    pal:{body:'#ffe14a',dark:'#d6a312',light:'#fffbc8',eye:'#2a2208',acc:'#7affff'},
-   mv:{ lt:mk(BASE.lt,{su:3,rc:6,dmg:4}), hv:mk(BASE.hv,{su:8,rc:13,dmg:10}), aa:mk(BASE.aa,{su:2,dmg:6}),
+   mv:{ lt:mk(BASE.lt,{su:3,rc:6,dmg:4}), hv:mk(BASE.hv,{su:8,rc:13,dmg:10}), aa:mk(BASE.aa,{su:2,dmg:6}), da:mk(BASE.da,{su:4,ac:5,rc:11,dmg:11,box:[8,-22,42,-4],kb:[2.8,-2],hs:18,bs:12,hstop:4,spark:2,name:'THUNDER BURST',spawn:[5,{kind:'ball',dx:24,dy:-14,vx:8.0,w:14,h:14,dmg:10,life:70,kb:[3,-1.5],hs:18,bs:12,launch:0}]}),
         sp:{su:8,ac:2,rc:18,dmg:0,box:[0,0,0,0],kb:[0,0],hs:0,bs:0,hstop:0,spark:2,noBox:1,
             spawn:[8,{kind:'ball',dx:20,dy:-16,vx:8.4,w:14,h:14,dmg:12,life:90,kb:[3.4,-1.6],hs:20,bs:14,launch:0}],name:'THUNDER BALL'} } },
   { id:'jack', atkMul:1.15, kbMul:1.35, name:'JACK', title:'THE LANTERN', shape:'arch', walk:2.0, back:1.7, jump:-7.8, hw:13, hh:28, stats:[4,4,3], burn:1,
@@ -168,13 +191,13 @@ const CH=[
 { id:'void', atkMul:1.0, kbMul:2.2, name:'VOID', title:'SHADOW SLIME', walk:2.2, back:1.8, jump:-7.8, hw:12, hh:27, stats:[3,4,4], drain:.18,
    passive:'DRAIN', passiveDesc:'Heals a quarter of the damage it deals.', spName:'BLINK STRIKE', spDesc:'Teleport behind the foe and strike.',
    pal:{body:'#9a55e8',dark:'#4a1f8a',light:'#e2b8ff',eye:'#ffe8ff',acc:'#ff4fd8'},
-   mv:{ lt:mk(BASE.lt,{}), hv:mk(BASE.hv,{dmg:10}), aa:mk(BASE.aa,{}),
+   mv:{ lt:mk(BASE.lt,{}), hv:mk(BASE.hv,{dmg:10}), aa:mk(BASE.aa,{}), da:mk(BASE.da,{su:6,ac:6,rc:13,dmg:13,box:[4,-28,48,-2],kb:[3.4,-3.5],hs:22,bs:14,hstop:6,spark:2,launch:1,name:'EVENT SURGE',tp:4,mx:[4,12,8]}),
         sp:{su:7,ac:8,rc:18,dmg:13,box:[-8,-30,36,-2],kb:[3,-5],hs:22,bs:14,hstop:8,spark:2,launch:1,
             tp:3,inv:[0,8],name:'BLINK STRIKE'} } },
  { id:'aseprite', atkMul:1.15, kbMul:1.15, name:'ASEPRITE', title:'PIXEL WARRIOR', shape:'cube', walk:2.1, back:1.8, jump:-7.8, hw:14, hh:28, stats:[4,4,4],
     passive:'PIXEL PERFECT', passiveDesc:'Moves have reduced startup and deal +15% damage.', spName:'PALETTE BLAST', spDesc:'Fires an explosive bouncy multicolor pixel burst.',
     pal:{body:'#ffffff',dark:'#9badb7',light:'#ffffff',eye:'#000000',acc:'#4df8ff'},
-    mv:{ lt:mk(BASE.lt,{su:3,dmg:6,name:'PIXEL BUMP'}), hv:mk(BASE.hv,{su:8,dmg:12,name:'PALETTE SMASH'}), aa:mk(BASE.aa,{dmg:8}),
+    mv:{ lt:mk(BASE.lt,{su:3,dmg:6,name:'PIXEL BUMP'}), hv:mk(BASE.hv,{su:8,dmg:12,name:'PALETTE SMASH'}), aa:mk(BASE.aa,{dmg:8}), da:mk(BASE.da,{su:4,ac:5,rc:10,dmg:13,box:[6,-26,46,-4],kb:[3,-2],hs:19,bs:12,hstop:4,spark:2,name:'PALETTE CHOP',spawns:[[5,{kind:'orbw',dx:18,dy:-16,vx:6.0,w:12,h:12,dmg:7,life:60,kb:[2,-1.5],hs:16,bs:10,launch:0}],[9,{kind:'orbb',dx:18,dy:-24,vx:5.0,w:14,h:14,dmg:8,life:70,kb:[2.4,-2],hs:18,bs:11,launch:0}]]}),
          sp:{su:8,ac:2,rc:18,dmg:0,box:[0,0,0,0],kb:[0,0],hs:0,bs:0,hstop:0,spark:2,noBox:1,
              spawn:[8,{kind:'orbw',dx:18,dy:-14,vx:6.0,vy:-1.5,g:0.1,w:14,h:14,dmg:12,life:90,kb:[3.2,-3.5],hs:22,bs:14,launch:1,spark:2}],
              spawns:[[8,{kind:'orbw',dx:18,dy:-14,vx:6.2,vy:-1.2,g:0.1,w:14,h:14,dmg:7,life:90,kb:[2.8,-3],hs:18,bs:11,launch:0}],
@@ -182,14 +205,14 @@ const CH=[
  { id:'nova', atkMul:1.14, kbMul:1.05, name:'NOVA', title:'COSMIC SLIME', shape:'cube', float:1, walk:2.1, back:1.7, jump:-7.6, hw:13, hh:28, stats:[4,4,4],
    passive:'ZERO GRAVITY', passiveDesc:'Low gravity float and +20% aerial attack damage.', spName:'EVENT HORIZON', spDesc:'Launches a gravitational vortex that pulls foes in.',
    pal:{body:'#312056',dark:'#180c30',light:'#7d52f0',eye:'#4df8ff',acc:'#ffd54f'},
-   mv:{ lt:mk(BASE.lt,{dmg:6,name:'STARDUST JAB'}), hv:mk(BASE.hv,{dmg:12,name:'COSMIC BURST'}), aa:mk(BASE.aa,{dmg:9,name:'SUPERNOVA'}),
+   mv:{ lt:mk(BASE.lt,{dmg:6,name:'STARDUST JAB'}), hv:mk(BASE.hv,{dmg:12,name:'COSMIC BURST'}), aa:mk(BASE.aa,{dmg:9,name:'SUPERNOVA'}), da:mk(BASE.da,{su:7,ac:6,rc:16,dmg:16,box:[6,-32,50,2],kb:[3.5,-5.5],hs:24,bs:16,hstop:8,spark:2,launch:1,name:'GRAVITY RIFT',spawn:[8,{kind:'vortex',dx:28,dy:-12,vx:2.5,w:20,h:20,dmg:12,life:90,kb:[2.5,-3],hs:22,bs:14,launch:1,spark:2}]}),
         sp:{su:9,ac:2,rc:20,dmg:0,box:[0,0,0,0],kb:[0,0],hs:0,bs:0,hstop:0,spark:2,noBox:1,
             spawn:[9,{kind:'vortex',dx:20,dy:-16,vx:3.8,w:18,h:18,dmg:15,life:100,kb:[2.8,-3.8],hs:24,bs:16,launch:1,spark:2}],name:'EVENT HORIZON'} } },
   { id:'dethking', atkMul:1.22, kbMul:1.18, name:'DETH KING', title:'REAPER MONARCH', shape:'cube', walk:2.2, back:1.8, jump:-8.0, hw:14, hh:28, stats:[5,5,5],
     drain:0.20, burn:1,
     passive:'SOUL HARVEST', passiveDesc:'Supreme stats. Drains 20% HP on hits and inflicts burning cursed flames.', spName:'HARVEST SCYTHE', spDesc:'Hurls a giant spinning death scythe that shreds through foes.',
     pal:{body:'#ac3232',dark:'#520b10',light:'#e64242',eye:'#ffffff',acc:'#c40a13',acc2:'#ffd700'},
-    mv:{ lt:mk(BASE.lt,{dmg:7,name:'SOUL JAB'}), hv:mk(BASE.hv,{dmg:14,name:'CRIMSON REAP'}), aa:mk(BASE.aa,{dmg:11,name:'DEATH DROP'}),
+    mv:{ lt:mk(BASE.lt,{dmg:7,name:'SOUL JAB'}), hv:mk(BASE.hv,{dmg:14,name:'CRIMSON REAP'}), aa:mk(BASE.aa,{dmg:11,name:'DEATH DROP'}), da:mk(BASE.da,{su:7,ac:7,rc:16,dmg:22,box:[8,-36,64,4],kb:[4.5,-5.2],hs:28,bs:18,hstop:9,spark:3,launch:1,burn:1,name:'SOUL REAP CLEAVE',mx:[6,14,5],spawn:[8,{kind:'scythe',dx:26,dy:-16,vx:4.2,w:26,h:26,dmg:16,life:80,kb:[3.2,-4],hs:24,bs:16,launch:1,spark:3}]}),
          sp:{su:8,ac:2,rc:20,dmg:0,box:[0,0,0,0],kb:[0,0],hs:0,bs:0,hstop:0,spark:3,noBox:1,
              spawn:[8,{kind:'scythe',dx:22,dy:-16,vx:4.6,w:24,h:24,dmg:18,life:100,kb:[3.4,-4.2],hs:26,bs:18,launch:1,spark:3}],name:'HARVEST SCYTHE'} } },
 ];
@@ -199,8 +222,11 @@ if(CHI.dethking!=null){ CHI['deathking']=CHI.dethking; CHI['deth_king']=CHI.deth
 // ---- state ---------------------------------------------------------
 const DEF_RULES={sumo:0,train:0,frenzy:0,wins:2,timer:3600,hpMax:[100,100],startHp:[0,0],atk:[1,1]};
 function newFighter(ci,x,face,hpMax){
+  const cid=CH[ci].id;
+  const wpEquipped = weaponUnlocked(ci) && (!SAVE.weapons || SAVE.weapons[cid] !== 0);
   return {ch:ci,x:x,y:GY,vx:0,vy:0,face:face,hp:hpMax,hpMax:hpMax,meter:0,guard:0,st:S_IDLE,stT:0,mv:'',moveT:0,moveHit:0,hs:0,bst:0,inv:0,
-          combo:0,onGround:1,pin:0,airUsed:0,dj:0,wins:0,dmgTaken:0,hits:0,spUsed:0,blocks:0,maxCombo:0,slow:0,burn:0,burnT:0,pct:0,perfects:0,drained:0};
+          combo:0,onGround:1,pin:0,airUsed:0,dj:0,wins:0,dmgTaken:0,hits:0,spUsed:0,blocks:0,maxCombo:0,slow:0,burn:0,burnT:0,pct:0,perfects:0,drained:0,
+          wp: wpEquipped ? 1 : 0};
 }
 function newMatch(c0,c1,seed,stage,rules){
   const R=Object.assign({},DEF_RULES,rules||{});
@@ -244,6 +270,7 @@ function stepFighter(G,i){
     case S_IDLE: case S_WALK: case S_BLOCK:{
       if(f.st===S_BLOCK&&f.bst>0){ f.vx*=.8; break; }
       if(pressed&IC && f.meter>=spCost(f.ch) && G.phase===P_FIGHT){ startMove(G,i,'sp'); break; }
+      if((m&ID) && (pressed&(IA|IB)) && f.onGround && C.mv.da){ startMove(G,i,'da'); break; }
       if(pressed&IB){ startMove(G,i,'hv'); break; }
       if(pressed&IA){ startMove(G,i,'lt'); break; }
       if(pressed&IU && f.onGround){ f.vy=C.jump*(f.slow>0?.88:1); f.vx=dir*C.walk*spd; f.onGround=0; f.airUsed=0; f.dj=0; setSt(f,S_JUMP); ev(G,{t:'jump',x:f.x,y:f.y}); break; }
@@ -263,13 +290,14 @@ function stepFighter(G,i){
       if(mv.tp!=null && t===mv.tp){ const side=(f.x<=o.x)?1:-1; let nx=o.x+side*(CH[o.ch].hw+16); nx=Math.max(WALL,Math.min(W-WALL,nx));
         ev(G,{t:'blink',x:f.x,y:f.y-16,x2:nx,ch:f.ch}); f.x=nx; f.face=(o.x>=f.x)?1:-1; f.vx=0; }
       { const sps=mv.spawns||(mv.spawn?[mv.spawn]:[]); for(const sp of sps){ if(t===sp[0]){ const p=sp[1];
-        G.proj.push({own:i,kind:p.kind,x:p.atFoe?o.x:f.x+f.face*p.dx,y:p.atFoe?GY+p.dy:f.y+p.dy,vx:f.face*p.vx,w:p.w,h:p.h,dmg:p.dmg,life:p.life,kb:p.kb,hs:p.hs,bs:p.bs,launch:p.launch,face:f.face,age:0,slow:p.slow||0,stun:p.stun||0,hstop:p.hs>0?6:4,spark:1,delay:p.delay||0,ret:p.ret||0,back:0}); } } }
+        G.proj.push({own:i,kind:p.kind,x:p.atFoe?o.x:f.x+f.face*p.dx,y:p.atFoe?GY+p.dy:f.y+p.dy,vx:f.face*p.vx,vy:p.vy,g:p.g,bounce:p.bounce,burn:p.burn,w:p.w,h:p.h,dmg:p.dmg,life:p.life,kb:p.kb,hs:p.hs,bs:p.bs,launch:p.launch,face:f.face,age:0,slow:p.slow||0,stun:p.stun||0,hstop:p.hs>0?6:4,spark:p.spark||1,delay:p.delay||0,ret:p.ret||0,back:0}); } } }
       if(mv.inv && t>=mv.inv[0] && t<mv.inv[1]) f.inv=Math.max(f.inv,1);
       f.moveT++;
       // cancel into a stronger move once it has connected
       if(f.moveHit && f.moveT>=mv.su+1 && !mv.air && G.phase===P_FIGHT){
+        if(f.mv==='lt' && (m&ID) && (pressed&(IA|IB)) && C.mv.da){ startMove(G,i,'da'); break; }
         if(f.mv==='lt' && (pressed&IB)){ startMove(G,i,'hv'); break; }
-        if((f.mv==='lt'||f.mv==='hv') && (pressed&IC) && f.meter>=spCost(f.ch)){ startMove(G,i,'sp'); break; }
+        if((f.mv==='lt'||f.mv==='hv'||f.mv==='da') && (pressed&IC) && f.meter>=spCost(f.ch)){ startMove(G,i,'sp'); break; }
         if(f.mv==='lt' && (pressed&IA) && f.moveT>=mv.su+mv.ac){ startMove(G,i,'lt'); break; }
       }
       if(f.moveT>=moveFrames(mv)||(mv.air&&f.onGround)){ if(f.onGround) setSt(f,S_IDLE); else setSt(f,S_JUMP); f.mv=''; }
@@ -335,7 +363,9 @@ function resolveHit(G,ai,di,mv,hx,hy,isProj){
   // clean hit
   d.combo++; if(d.combo>a.maxCombo) a.maxCombo=d.combo;
   const scale=Math.max(.5,1-.1*(d.combo-1));
-  let dmg=Math.max(1,Math.round(mv.dmg*scale*(DC.dmgMul||1)*(AC.atkMul||1)*(R.atk[ai]||1)*((AC.rage&&a.hp<30)?AC.rage:1)));
+  const wpMul=a.wp?1.25:1;
+  let dmg=Math.max(1,Math.round(mv.dmg*scale*(DC.dmgMul||1)*(AC.atkMul||1)*(R.atk[ai]||1)*((AC.rage&&a.hp<30)?AC.rage:1)*wpMul));
+  if(mv.heal&&a.hp>0) a.hp=Math.min(a.hpMax,a.hp+Math.round(mv.heal*wpMul));
   let kill=false;
   if(R.sumo){ d.pct+=dmg; }
   else { d.hp-=dmg; if(d.hp<=0){ if(R.train){ d.hp=d.hpMax; } else kill=true; } }
@@ -741,6 +771,84 @@ function slimeAnim(f,C,now,rs){
   return P;
 }
 
+
+function drawProceduralWeapon(ctx, wid, isAtk, tt){
+  switch(wid){
+    case 'ruby':
+      R_(-2, -6, 4, 8, '#520b10'); R_(-7, -7, 14, 3, '#ffd24a'); R_(-4, -28, 8, 21, '#e64242'); R_(-2, -26, 4, 18, '#ff9a8a'); R_(-1, -31, 2, 4, '#ffffff'); break;
+    case 'hatter':
+      R_(-2, -22, 4, 26, '#26202f'); R_(-4, -26, 8, 5, '#ffd24a'); R_(-2, -25, 4, 3, '#ffffff'); R_(-3, -20, 6, 2, '#c4282e'); break;
+    case 'twin':
+      R_(-5, -24, 3, 26, '#ffffff'); R_(-7, -27, 7, 4, '#ffd24a'); R_(2, -24, 3, 26, '#1a1822'); R_(0, -27, 7, 4, '#9a55e8'); break;
+    case 'god':
+      R_(-2, -32, 4, 38, '#e0a810'); R_(-6, -26, 12, 3, '#ffffff'); R_(-4, -38, 8, 12, '#fffbb0'); R_(-1, -42, 2, 5, '#ffffff'); break;
+    case 'gloop':
+      R_(-2, -10, 4, 12, '#2c9446'); R_(-1, -18, 2, 9, '#8c8c8c'); R_(-6, -26, 12, 10, '#5fd35f'); R_(-8, -24, 16, 2, '#c4f7a8'); R_(-4, -28, 8, 2, '#2c9446'); break;
+    case 'ember':
+      R_(-2, -6, 4, 8, '#2a0c0c'); R_(-5, -7, 10, 2, '#ffd24a'); R_(-3, -28, 6, 21, '#ff6a3a'); R_(-1, -26, 2, 17, '#ffe45a'); R_(-1, -32, 3, 4, '#ffffff'); break;
+    case 'frost':
+      R_(-2, -5, 4, 7, '#0c1c3a'); R_(-6, -8, 12, 4, '#2f7fd0'); R_(-2, -30, 4, 23, '#6cc8ff'); R_(-1, -28, 2, 20, '#ffffff'); R_(0, -34, 1, 5, '#ffffff'); break;
+    case 'rocky':
+      R_(-2, -16, 4, 22, '#5e564c'); R_(-8, -26, 16, 11, '#a39a8c'); R_(-9, -24, 18, 3, '#1a1612'); R_(-2, -29, 4, 3, '#ffcf5a'); break;
+    case 'volt':
+      R_(-2, -22, 4, 26, '#d6a312'); R_(-6, -26, 12, 5, '#ffe14a'); R_(-5, -34, 2, 9, '#7affff'); R_(3, -34, 2, 9, '#7affff'); break;
+    case 'jack':
+      R_(-2, -12, 4, 16, '#8c4e43'); R_(-1, -20, 10, 3, '#1a1612'); R_(7, -26, 3, 9, '#fbf236'); R_(-8, -16, 7, 7, '#df7126'); R_(-6, -14, 3, 3, '#fbf236'); break;
+    case 'void':
+      R_(-9, -20, 18, 18, '#4a1f8a'); R_(-7, -18, 14, 14, '#14102c'); R_(-8, -19, 16, 16, '#ff4fd8'); R_(-6, -17, 12, 12, '#14102c'); break;
+    case 'aseprite':
+      R_(-2, -6, 4, 8, '#000000'); R_(-6, -8, 12, 3, '#9badb7'); R_(-4, -26, 8, 18, '#ffffff'); R_(-2, -24, 4, 14, '#4df8ff'); break;
+    case 'nova':
+      R_(-2, -30, 4, 36, '#180c30'); R_(-5, -24, 10, 3, '#ffd54f'); R_(-10, -36, 6, 14, '#4df8ff'); R_(-8, -34, 3, 10, '#ffffff'); R_(-1, -38, 2, 9, '#7d52f0'); break;
+    default:
+      R_(-2, -6, 4, 8, '#555'); R_(-6, -8, 12, 3, '#ffd24a'); R_(-3, -24, 6, 17, '#fff'); break;
+  }
+}
+function drawFighterWeapon(f, C, b, face, now, rs, opt){
+  const wid = C.id;
+  const isAtk = f.st === S_ATK;
+  const isWeaponMove = isAtk && (f.mv === 'da');
+  const mv = isAtk ? C.mv[f.mv] : null;
+  const tt = f.moveT || 0;
+  let hx = b.cx + face * Math.round(C.hw * 0.7);
+  let hy = b.top + Math.round(b.H2 * 0.6);
+  let angle = (face > 0 ? 0.35 : -0.35);
+  if (isAtk) {
+    const su = mv ? mv.su : 6, ac = mv ? mv.ac : 6, rc = mv ? mv.rc : 10;
+    if (tt < su) {
+      const k = tt / su; angle = face > 0 ? -0.8 * k : 0.8 * k; hy -= k * 6;
+    } else if (tt < su + ac) {
+      const k = (tt - su) / ac; angle = face > 0 ? (-0.8 + 2.2 * k) : (0.8 - 2.2 * k); hx += face * (8 + k * 14); hy += (k - 0.5) * 8;
+    } else {
+      const k = (tt - su - ac) / rc; angle = face > 0 ? (1.4 - 1.1 * k) : (-1.4 + 1.1 * k);
+    }
+  } else if (f.st === S_WALK) {
+    angle += Math.sin(now / 150) * 0.2; hy += Math.abs(Math.sin(now / 150)) * 2;
+  } else {
+    angle += Math.sin(now / 350 + (rs.seed||0)) * 0.1; hy += Math.sin(now / 350 + (rs.seed||0)) * 1.5;
+  }
+  ctx.save();
+  ctx.translate(Math.round(hx), Math.round(hy));
+  ctx.scale(face, 1);
+  ctx.rotate(angle);
+  if (wid === 'dethking') {
+    if (scytheImg && scytheImg.complete && scytheImg.naturalWidth > 0) {
+      ctx.drawImage(scytheImg, -8, -26, 26, 31);
+    } else {
+      R_(-2, -18, 4, 24, '#000000'); R_(-6, -24, 16, 6, '#ac3232'); R_(-8, -26, 12, 3, '#ff4242');
+    }
+    if (isWeaponMove && tt >= 5 && tt <= 16) {
+      ctx.strokeStyle = '#ff3333'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, -10, 24, -1.2, 1.2); ctx.stroke();
+    }
+  } else {
+    drawProceduralWeapon(ctx, wid, isAtk, tt);
+    if (isWeaponMove && tt >= 5 && tt <= 16) {
+      ctx.strokeStyle = '#ffd24a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -10, 20, -1.0, 1.0); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
 function drawSlime(f,idx,now,sk,opt){
   opt=opt||{}; const C=CH[f.ch], rs=RS[idx]||RS[0], pal=opt.pal||skinPal(f.ch,sk);
   const fx=opt.x!=null?opt.x:f.x, fy=opt.y!=null?opt.y:f.y, face=opt.face!=null?opt.face:f.face;
@@ -764,6 +872,7 @@ function drawSlime(f,idx,now,sk,opt){
   if(!flash&&!opt.pal) bodyDecor(C,b,face,now,pal,flash);
   rs.lag=(rs.lag||0)+(Math.max(-3,Math.min(3,-f.vx*1.2))-(rs.lag||0))*.2;
   if(!opt.pal) decorTop(C,b.cxTop,b.top,face,now,pal,rs);
+  if(!opt.pal && (f.wp || (opt.previewWeapon && weaponUnlocked(f.ch)))) drawFighterWeapon(f,C,b,face,now,rs,opt);
   // face
   const eyeY=b.top+Math.round(b.H2*.34), sepc=Math.max(3,Math.round(C.hw*.42)), ex=b.cx+Math.round(2*face);
   const e1=ex-sepc+(face>0?0:-1), e2=ex+sepc-2+(face>0?0:-1);
@@ -1043,6 +1152,7 @@ function drawHUD(G,now,names,opts){
     if(f.guard>1){ const gw=Math.round(80*f.guard/GUARD_MAX), gx=left?bx:bx+182-gw; R_(left?bx:bx+102,27,80,4,'#1a1636'); R_(gx,27,gw,4,f.guard>70?'#ff7a3a':'#9ad8ff'); }
     // name + chip
     const nx=left?bx:bx+182; txt(C.name,nx,left?32:32,pal.light,1,left?0:2,OUT);
+    if(f.wp) txt('[W +25%]',left?nx+tw(C.name,1)+5:nx-tw(C.name,1)-5,32,'#ffd24a',1,left?0:2,OUT);
     if(opts.tags&&opts.tags[i]) txt(opts.tags[i],nx,left?32:32,'#fff',1,left?0:2); // overridden below if used
     // round pips
     for(let k=0;k<R.wins;k++){ const px=left?bx+((C.name.length*6)+8)+k*9:bx+182-((C.name.length*6)+8)-k*9-6; R_(px,32,7,7,OUT); R_(px+1,33,5,5,k<f.wins?'#ffd24a':'#2a2550'); if(k<f.wins) R_(px+1,33,2,2,'#fff6b0'); }
@@ -1123,6 +1233,21 @@ function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE)); }catc
 // ---- quests: edit this list to add your own -------------------------------------------
 // stat: which counter it watches   goal: value needed   reward: {slime:'id'} or {skin:['id',skinIndex]}
 const QUESTS=[
+  // Weapon Mastery Quests (Each slime gets a signature weapon +25% buff & move)
+  {id:'q_w_dethking', name:'MONARCH HARVEST SCYTHE', desc:'WIN 3 MATCHES AS DETH KING', stat:'dethWins', goal:3, reward:{weapon:'dethking'}},
+  {id:'q_w_nova',     name:'COSMIC STELLAR GLAIVE', desc:'WIN 3 MATCHES AS NOVA', stat:'novaWins', goal:3, reward:{weapon:'nova'}},
+  {id:'q_w_aseprite', name:'16-BIT PIXEL BLADE', desc:'WIN 3 MATCHES AS ASEPRITE', stat:'aseSkinWins', goal:3, reward:{weapon:'aseprite'}},
+  {id:'q_w_ruby',     name:'CRIMSON BROADSWORD', desc:'WIN 3 MATCHES AS RUBY', stat:'rubyWins', goal:3, reward:{weapon:'ruby'}},
+  {id:'q_w_hatter',   name:'ENCHANTED CANE', desc:'WIN 3 MATCHES AS HATTER', stat:'hatterWins', goal:3, reward:{weapon:'hatter'}},
+  {id:'q_w_twin',     name:'YIN-YANG SCEPTERS', desc:'WIN 3 MATCHES AS TWIN', stat:'twinWins', goal:3, reward:{weapon:'twin'}},
+  {id:'q_w_god',      name:'HOLY SUN HALBERD', desc:'WIN 3 MATCHES AS GOD SLIME', stat:'godWins', goal:3, reward:{weapon:'god'}},
+  {id:'q_w_gloop',    name:'TOXIC SPORE FLAIL', desc:'WIN 3 MATCHES AS GLOOP', stat:'gloopWins', goal:3, reward:{weapon:'gloop'}},
+  {id:'q_w_ember',    name:'BLAZING KATANA', desc:'WIN 3 MATCHES AS EMBER', stat:'emberWins', goal:3, reward:{weapon:'ember'}},
+  {id:'q_w_frost',    name:'GLACIAL RAPIER', desc:'WIN 3 MATCHES AS FROST', stat:'frostWins', goal:3, reward:{weapon:'frost'}},
+  {id:'q_w_rocky',    name:'GRANITE WARHAMMER', desc:'WIN 3 MATCHES AS ROCKY', stat:'rockyWins', goal:3, reward:{weapon:'rocky'}},
+  {id:'q_w_volt',     name:'LIGHTNING ROD', desc:'WIN 3 MATCHES AS VOLT', stat:'voltWins', goal:3, reward:{weapon:'volt'}},
+  {id:'q_w_jack',     name:'CURSED LANTERN SICKLE', desc:'WIN 3 MATCHES AS JACK', stat:'jackWins', goal:3, reward:{weapon:'jack'}},
+  {id:'q_w_void',     name:'ECLIPSE CHAKRAM', desc:'WIN 3 MATCHES AS VOID', stat:'voidWins', goal:3, reward:{weapon:'void'}},
   {id:'q_dethking', name:'REAPER CORONATION', desc:'THE KING AWAKENS: WIN 50 MATCHES', stat:'wins', goal:50, reward:{slime:'dethking'}},
   {id:'q_s_dethking1', name:'LICH ASCENDANCY', desc:'WIN 2 MATCHES AS DETH KING', stat:'dethWins', goal:2, reward:{skin:['dethking',1]}},
   {id:'q_s_dethking2', name:'GOLDEN DYNASTY', desc:'WIN 5 MATCHES AS DETH KING', stat:'dethWins', goal:5, reward:{skin:['dethking',2]}},
@@ -1230,7 +1355,31 @@ function checkQuests(){
   if(out.length) save();
   return out;
 }
-function rewardText(q){ if(q.reward.slime==='jack') return 'JACK SLIME (7 DAYS PASS)'; return q.reward.slime?CH[CHI[q.reward.slime]].name+' SLIME':CH[CHI[q.reward.skin[0]]].name+' '+SKINS[q.reward.skin[0]][q.reward.skin[1]].n+' SKIN'; }
+function rewardText(q){
+  if(q.reward.slime==='jack') return 'JACK SLIME (7 DAYS PASS)';
+  if(q.reward.weapon) return WEAPONS[q.reward.weapon].name+' (+25% BUFF)';
+  return q.reward.slime?CH[CHI[q.reward.slime]].name+' SLIME':CH[CHI[q.reward.skin[0]]].name+' '+SKINS[q.reward.skin[0]][q.reward.skin[1]].n+' SKIN';
+}
+function weaponUnlocked(ci){
+  if(SAVE.devAll) return true;
+  const id=CH[ci].id;
+  const qId='q_w_'+id;
+  if(SAVE.done[qId] || (SAVE.weapons && SAVE.weapons[id])) return true;
+  const q = QUESTS.find(q=>q.reward && q.reward.weapon===id);
+  if(q){
+    const statVal = (SAVE.stats[q.stat]||0);
+    if(statVal >= q.goal){
+      SAVE.done[q.id] = 1;
+      save();
+      return true;
+    }
+  }
+  return false;
+}
+function questForWeapon(ci){
+  const id=CH[ci].id;
+  return QUESTS.find(q=>q.reward && q.reward.weapon===id);
+}
 
 // ---- audio ---------------------------------------------------------------------
 let AC=null, master=null;
@@ -1339,11 +1488,11 @@ function blobHead(ci,sk,x,y,pose,locked){ // little slime at x,y feet
   const f=newFighter(ci,x,1,100); f.y=GY; const o={x:x,y:y,face:1,noShadow:true,pose:pose}; if(locked) o.pal={body:'#2a2550',dark:'#1b1838',light:'#3a3470',eye:'#2a2550',acc:'#2a2550'};
   drawSlime(f,0,NOW,sk,o); }
 function previewFighter(ci,t){ // cycles idle / light / heavy / special to show the slime off
-  const C=CH[ci], f=newFighter(ci,0,1,100); f.y=GY; const k=t%330; f.stT=t;
-  const seq=[['lt',90],['hv',140],['sp',200]];
+  const C=CH[ci], f=newFighter(ci,0,1,100); f.y=GY; const k=t%360; f.stT=t;
+  const seq=[['lt',70],['hv',120],['da',180],['sp',250]];
   for(const [m,s] of seq){ const mv=C.mv[m], tot=mv.su+mv.ac+mv.rc; if(k>=s&&k<s+tot){ f.st=S_ATK; f.mv=m; f.moveT=k-s; f.onGround=1; } }
   return f; }
-function drawPreview(ci,sk,x,y,t,locked){ const f=previewFighter(ci,t); const rs=RS[0]; const P=slimeAnim(f,CH[ci],NOW,rs); const o={x:x,y:y+P.oy*0,face:1,noShadow:true,pose:P};
+function drawPreview(ci,sk,x,y,t,locked){ const f=previewFighter(ci,t); const rs=RS[0]; const P=slimeAnim(f,CH[ci],NOW,rs); const o={x:x,y:y+P.oy*0,face:1,noShadow:true,pose:P,previewWeapon:true};
   ctx.globalAlpha=.3; R_(x-18,y+1,36,3,'#000'); ctx.globalAlpha=1;
   // fake position so decorations/pod anchor at x,y
   const old=f.x; f.x=x; const oo={x:x,y:y,face:1,noShadow:true,pose:P}; if(locked) oo.pal={body:'#2a2550',dark:'#1b1838',light:'#3a3470',eye:'#2a2550',acc:'#2a2550'}; drawSlime(f,0,NOW,sk,oo); f.x=old;
@@ -1399,7 +1548,7 @@ function finishMatch(){
   const localSlots=r.kind==='online'?[net.slot]:[0,1].filter(i=>human[i]);
   const trainingMode=mode&&mode.id==='training';
   if(!trainingMode){
-    for(const i of localSlots){ const f=G.f[i]; bumpStat('played',1); bumpStat('blocks',f.blocks); bumpStat('specials',f.spUsed); bumpStat('perfects',f.perfects); bumpStat('combo',f.maxCombo); if(w===i){ bumpStat('wins',1); bumpStat('pixelWins',1); bumpStat('novaWinsQ',1); bumpStat('dethWinsQ',1); if(f.ch===CHI.nova) bumpStat('novaWins',1); if(f.ch===CHI.dethking) bumpStat('dethWins',1); if(f.ch===CHI.aseprite||f.ch===CHI.aesprite) bumpStat('aseSkinWins',1); if(G.rules.sumo) bumpStat('sumoWins',1); } }
+    for(const i of localSlots){ const f=G.f[i]; bumpStat('played',1); bumpStat('blocks',f.blocks); bumpStat('specials',f.spUsed); bumpStat('perfects',f.perfects); bumpStat('combo',f.maxCombo); if(w===i){ bumpStat('wins',1); bumpStat('pixelWins',1); bumpStat('novaWinsQ',1); bumpStat('dethWinsQ',1); bumpStat(CH[f.ch].id+'Wins', 1); if(f.ch===CHI.nova) bumpStat('novaWins',1); if(f.ch===CHI.dethking) bumpStat('dethWins',1); if(f.ch===CHI.aseprite||f.ch===CHI.aesprite) bumpStat('aseSkinWins',1); if(G.rules.sumo) bumpStat('sumoWins',1); } }
     if(r.ringouts) bumpStat('ringouts',r.ringouts);
   }
   const humanWon=localSlots.includes(w);
@@ -1450,7 +1599,7 @@ function titleRender(){
   if(((NOW/500)|0)%2) txt('PRESS START',W/2,200,'#ffffff',2,1,OUT);
   txt('ENTER / SPACE / J / TAP',W/2,222,'#9ad8ff',1,1,OUT);
   hot(0,0,W,H,()=>{ SFX.ok(); setScene('menu'); });
-  txt('V1.7.1 (DETH KING RISES)',W-6,H-10,'#ffd24a',1,2);
+  txt('V1.8 (WEAPONS & MASTERY QUESTS)',W-6,H-10,'#ffd24a',1,2);
 }
 
 // ---- scene: menu ---------------------------------------------------------------------------
@@ -1537,10 +1686,16 @@ function selectUpdate(){
       }
       if(m&(IL|IR|IU|ID)){ sl.cur=Math.min(CH.length-1,c); SFX.ui(); sl.ci=sl.cur; sl.sk=slimeUnlocked(sl.cur)?(SAVE.skin[CH[sl.cur].id]|0):0; if(!skinUnlocked(sl.cur,sl.sk)) sl.sk=0; }
       if(m&IB&&slimeUnlocked(sl.cur)) cycleSkin(s);
+      if(keysDown.KeyW && !selectUpdate.w && weaponUnlocked(sl.cur)){
+        selectUpdate.w = 1; SAVE.weapons = SAVE.weapons || {};
+        SAVE.weapons[CH[sl.cur].id] = (SAVE.weapons[CH[sl.cur].id] === 0 ? 1 : 0);
+        save(); SFX.ok();
+      }
     }
     if((m&IA)||enterPressed) selectConfirm(s);
     if(m&IC){ if(sl.ready){ sl.ready=0; SFX.back(); if(run&&run.kind==='online') netSendSel(); } else if(s===act[0]||act.length===1){ SFX.back(); backFromSelect(); } }
   }
+  selectUpdate.w = keysDown.KeyW;
   if((escPressed||backPressed)){ backFromSelect(); }
   if(act.every(s=>sel[s].ready)&&sceneT>8){
     if(run&&run.kind==='online'){ netSelectDone(); return; }
@@ -1600,9 +1755,25 @@ function selectRender(){
       box(px+pw-68, py+4, 62, 18, sl.ready?'#1d3a2a':'#2d2762', OUT, sl.ready?'#5fd35f':'#ffd24a');
       txt(sl.ready?'READY!':'PICK [F]', px+pw-37, py+9, sl.ready?'#5fd35f':'#ffd24a', 1, 1, OUT);
       hot(px+pw-70, py+2, 66, 22, ()=>{ selectConfirm(s); });
-      txt('SPECIAL: '+C.spName,tx,py+18,'#ffe45a',1,0); wrap(C.spDesc,mc).slice(0,2).forEach((l,i)=>txt(l,tx,py+29+i*10,'#d8d4ff',1,0));
-      wrap(C.passive+': '+C.passiveDesc,mc).slice(0,2).forEach((l,i)=>txt(l,tx,py+51+i*10,'#c4f7a8',1,0));
+      txt('SPECIAL: '+C.spName,tx,py+17,'#ffe45a',1,0);
+      const wpUn = weaponUnlocked(ci), wpObj = WEAPONS[C.id];
+      const wpEq = wpUn && (!SAVE.weapons || SAVE.weapons[C.id] !== 0);
+      if(wpUn){
+        txt('WEAPON: '+wpObj.name+' [EQUIPPED +25%]',tx,py+28,'#5fd35f',1,0);
+        txt('DOWN+A: '+wpObj.skillName,tx,py+39,'#ffd24a',1,0);
+      } else {
+        const wq = questForWeapon(ci);
+        const wCur = wq ? (SAVE.stats[wq.stat]||0) : 0;
+        txt('WEAPON QUEST: '+(wq?wq.name:'LOCKED')+' ('+wCur+'/'+(wq?wq.goal:3)+')',tx,py+28,'#ff9a8a',1,0);
+        txt('REWARD: '+wpObj.name+' (+25% BUFF & '+wpObj.skillName+')',tx,py+39,'#9ad8ff',1,0);
+      }
+      wrap(C.passive+': '+C.passiveDesc,mc).slice(0,2).forEach((l,i)=>txt(l,tx,py+50+i*10,'#c4f7a8',1,0));
       const stn=['PWR','SPD','DEF']; for(let q=0;q<3;q++){ const bx=tx+q*50; txt(stn[q],bx,py+77,'#9ad8ff',1,0); for(let b=0;b<5;b++) R_(bx+19+b*5,py+77,4,6,b<C.stats[q]?'#ffd24a':'#2a2550'); }
+      if(wpUn){
+        box(px+pw-144, py+4, 72, 18, wpEq?'#1d3a2a':'#3a1d1d', OUT, wpEq?'#5fd35f':'#ff5a5a');
+        txt(wpEq?'WEAPON ON':'WEAPON OFF', px+pw-108, py+9, wpEq?'#5fd35f':'#ff9a9a', 1, 1, OUT);
+        hot(px+pw-146, py+2, 76, 22, ()=>{ SAVE.weapons=SAVE.weapons||{}; SAVE.weapons[C.id]=wpEq?0:1; save(); SFX.ok(); });
+      }
       const sk=SKINS[C.id], skn=sk[sl.sk]?sk[sl.sk].n:''; txt(skn,px+36,py+68,'#fff',1,1,OUT); txt(sk.length>1?'< SKIN >':'',px+36,py+78,'#6a64a8',1,1); hot(px+2,py+62,70,22,()=>cycleSkin(s));
     } else {
       drawPreview(ci,0,px+36,py+66,0,1); const q=questFor(ci);
@@ -1622,7 +1793,7 @@ function selectRender(){
       }
     }
   });
-  const hint=run&&run.kind==='online'?'F = READY   C/H = CANCEL':'F / ENTER = PICK   G/L = SKIN   H / ESC = BACK'; txt(hint,W/2,H-9,'#6a64a8',1,1);
+  const hint=run&&run.kind==='online'?'F = READY   C/H = CANCEL':'F / ENTER = PICK   G/L = SKIN   W = WEAPON   H / ESC = BACK'; txt(hint,W/2,H-9,'#6a64a8',1,1);
 }
 
 // ---- scene: stage select ---------------------------------------------------------------------
@@ -1737,6 +1908,7 @@ function launchQuest(q){
   if(q.stat==='novaWins'||q.stat==='novaWinsQ') p1 = CHI.nova;
   else if(q.stat==='dethWins'||q.stat==='dethWinsQ') p1 = CHI.dethking;
   else if(q.stat==='aseSkinWins'||q.stat==='pixelWins') p1 = CHI.aseprite;
+  else if(q.reward && q.reward.weapon) p1 = CHI[q.reward.weapon] != null ? CHI[q.reward.weapon] : p1;
   else if(q.reward && q.reward.skin) p1 = CHI[q.reward.skin[0]] != null ? CHI[q.reward.skin[0]] : p1;
   else if(q.reward && q.reward.slime) p1 = CHI[q.reward.slime] != null ? CHI[q.reward.slime] : p1;
 
