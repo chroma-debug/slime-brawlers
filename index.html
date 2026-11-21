@@ -1764,8 +1764,18 @@ function selectRender(){
       } else {
         const wq = questForWeapon(ci);
         const wCur = wq ? (SAVE.stats[wq.stat]||0) : 0;
-        txt('WEAPON QUEST: '+(wq?wq.name:'LOCKED')+' ('+wCur+'/'+(wq?wq.goal:3)+')',tx,py+28,'#ff9a8a',1,0);
+        const wReady = wq && wCur >= wq.goal;
+        txt('WEAPON QUEST: '+(wq?wq.name:'LOCKED')+' ('+wCur+'/'+(wq?wq.goal:3)+')',tx,py+28,wReady?'#5fd35f':'#ff9a8a',1,0);
         txt('REWARD: '+wpObj.name+' (+25% BUFF & '+wpObj.skillName+')',tx,py+39,'#9ad8ff',1,0);
+        if(wReady){
+          box(px+pw-144, py+4, 72, 18, '#1d3a2a', OUT, '#5fd35f');
+          txt('CLAIM WEAPON', px+pw-108, py+9, '#5fd35f', 1, 1, OUT);
+          hot(px+pw-146, py+2, 76, 22, ()=>{ SAVE.done[wq.id]=1; save(); SFX.unlock(); });
+        } else {
+          box(px+pw-144, py+4, 72, 18, '#2d2762', OUT, '#ffd24a');
+          txt('START QUEST', px+pw-108, py+9, '#ffd24a', 1, 1, OUT);
+          hot(px+pw-146, py+2, 76, 22, ()=>{ if(wq) launchQuest(wq); });
+        }
       }
       wrap(C.passive+': '+C.passiveDesc,mc).slice(0,2).forEach((l,i)=>txt(l,tx,py+50+i*10,'#c4f7a8',1,0));
       const stn=['PWR','SPD','DEF']; for(let q=0;q<3;q++){ const bx=tx+q*50; txt(stn[q],bx,py+77,'#9ad8ff',1,0); for(let b=0;b<5;b++) R_(bx+19+b*5,py+77,4,6,b<C.stats[q]?'#ffd24a':'#2a2550'); }
@@ -1994,7 +2004,7 @@ function questsRender(){
     }
 
     // Reward icon
-    const ci = q.reward.slime ? CHI[q.reward.slime] : CHI[q.reward.skin[0]];
+    const ci = q.reward.slime ? CHI[q.reward.slime] : (q.reward.weapon ? CHI[q.reward.weapon] : (q.reward.skin ? CHI[q.reward.skin[0]] : 0));
     const sk = q.reward.skin ? q.reward.skin[1] : 0;
     ctx.save(); ctx.beginPath(); ctx.rect(16, y+2, 34, 22); ctx.clip();
     const pose = {sx:.9,sy:.9,skew:0,oy:0,eyes:'n',mouth:'n',pod:null,alpha:1,block:0};
